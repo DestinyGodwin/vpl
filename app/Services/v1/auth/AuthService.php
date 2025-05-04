@@ -5,13 +5,14 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\v1\auth\EmailOtpNotification;
+use App\Notifications\v1\auth\PasswordResetOtpNotification;
 
 class AuthService
 {
     /**
      * Create a new class instance.
      */
-    public function register(array $data): User
+    public function register(array $data) : string
     {
         if (isset($data['profile_picture'])) {
             $path = $data['profile_picture']->store('profile_pictures', 'public');
@@ -31,19 +32,24 @@ class AuthService
     }
 
 
-    public function sendOtp(User $user)
+    public function sendOtp(User $user, string $type = 'email_verification')
     {
         $otp = rand(100000, 999999);
-        $user->update(attributes: [
+        $user->update([
             'otp_code' => $otp,
             'otp_expires_at' => now()->addMinutes(10)
         ]);
-
+    
         try {
-            $user->notify(new EmailOtpNotification($otp));
-            Log::info("OTP sent to {$user->email}");
+            if ($type === 'email_verification') {
+                $user->notify(new EmailOtpNotification($otp));
+            } elseif ($type === 'password_reset') {
+                $user->notify(new PasswordResetOtpNotification($otp));
+            }
+    
+            Log::info("OTP sent for {$type} to {$user->email}");
         } catch (\Throwable $e) {
-            Log::error("Failed to send OTP: " . $e->getMessage());
+            Log::error("Failed to send {$type} OTP: " . $e->getMessage());
         }
     }
 

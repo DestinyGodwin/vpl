@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\v1\auth;
 
 use App\Models\User;
@@ -11,6 +10,8 @@ use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
 use App\Http\Requests\v1\auth\ResetPasswordRequest;
 use App\Http\Requests\v1\auth\ForgotPasswordRequest;
+use App\Notifications\v1\auth\EmailVerifiedSuccessNotification;
+use App\Notifications\v1\auth\PasswordChangedSuccessNotification;
 
 class AuthController extends Controller
 {
@@ -25,7 +26,9 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
+
         if ($this->authService->verifyOtp($user, $request->otp)) {
+            $user->notify(new EmailVerifiedSuccessNotification());
             return response()->json(['message' => 'Email verified.']);
         }
 
@@ -35,14 +38,17 @@ class AuthController extends Controller
     public function resendOtp(VerifyOtpRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
-        $this->authService->sendOtp($user);
+        $this->authService->sendOtp($user, 'email_verification');
         return response()->json(['message' => 'OTP resent.']);
     }
 
     public function login(LoginRequest $request)
     {
         $token = $this->authService->login($request->validated());
-        if (!$token) return response()->json(['message' => 'Invalid credentials.'], 401);
+        if (!$token) {
+            return response()->json(['message' => 'Invalid credentials.'], 401);
+        }
+
         return response()->json(['token' => $token]);
     }
 
@@ -55,7 +61,7 @@ class AuthController extends Controller
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
-        $this->authService->sendOtp($user);
+        $this->authService->sendOtp($user, 'password_reset');
         return response()->json(['message' => 'OTP sent to email.']);
     }
 
@@ -68,5 +74,8 @@ class AuthController extends Controller
         }
 
         $user->update(['password' => bcrypt($request->password)]);
+        $user->notify(new PasswordChangedSuccessNotification());
+
         return response()->json(['message' => 'Password reset successful.']);
-    }}
+    }
+}
