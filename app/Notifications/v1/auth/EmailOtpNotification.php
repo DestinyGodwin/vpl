@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Notifications\Notification\v1\auth;
+namespace App\Notifications\v1\auth;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,10 +14,9 @@ class EmailOtpNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(public $otp) {}
+
+   
 
     /**
      * Get the notification's delivery channels.
@@ -32,13 +31,14 @@ class EmailOtpNotification extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
+   
+        public function toMail($notifiable): MailMessage {
+            return (new MailMessage)
+                ->subject('Your OTP Code')
+                ->line("Use this OTP to verify your email: **{$this->otp}**")
+                ->line('Expires in 10 minutes.');
+        }
+    
 
     /**
      * Get the array representation of the notification.

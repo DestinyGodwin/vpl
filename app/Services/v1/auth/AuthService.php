@@ -5,7 +5,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Notifications\Notification\v1\auth\EmailOtpNotification;
+use App\Notifications\v1\auth\EmailOtpNotification;
 
 class AuthService
 {
