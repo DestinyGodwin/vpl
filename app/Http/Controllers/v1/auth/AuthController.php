@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AuthService;
 use App\Http\Requests\v1\auth\LoginRequest;
+use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
 use App\Http\Requests\v1\auth\ResetPasswordRequest;
 use App\Http\Requests\v1\auth\ForgotPasswordRequest;
@@ -21,7 +22,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Registered. OTP sent.', 'user' => $user], 201);
     }
 
-    public function verifyOtp(Request $request)
+    public function verifyOtp(VerifyOtpRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
         if ($this->authService->verifyOtp($user, $request->otp)) {
