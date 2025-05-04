@@ -53,4 +53,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function university() {
+        return $this->belongsTo(University::class);
+    }
+    
+    public function stores() {
+        return $this->hasMany(Store::class);
+    }
 }
