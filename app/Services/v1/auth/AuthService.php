@@ -4,7 +4,6 @@ namespace App\Services\v1\auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use App\Notifications\v1\auth\EmailOtpNotification;
 
 class AuthService
@@ -22,7 +21,8 @@ class AuthService
         $user = User::create($data);
 
         try {
-            $user->sendEmailVerificationOtp(); 
+            $this->sendOtp($user);
+           // $user->sendEmailVerificationOtp(); 
         } catch (\Throwable $e) {
             Log::error('OTP email failed: ' . $e->getMessage());
         }
@@ -30,10 +30,11 @@ class AuthService
         return $user;
     }
 
+
     public function sendOtp(User $user)
     {
         $otp = rand(100000, 999999);
-        $user->update([
+        $user->update(attributes: [
             'email_otp' => $otp,
             'otp_expires_at' => now()->addMinutes(10)
         ]);
