@@ -22,13 +22,12 @@ class AuthService
 
         try {
             $this->sendOtp($user);
-           // $user->sendEmailVerificationOtp(); 
            Log::info('OTP email sent successfully: ' );
         } catch (\Throwable $e) {
             Log::error('OTP email failed: ' . $e->getMessage());
         }
 
-        return $user;
+        return $user->email;
     }
 
 
@@ -36,7 +35,7 @@ class AuthService
     {
         $otp = rand(100000, 999999);
         $user->update(attributes: [
-            'email_otp' => $otp,
+            'otp_code' => $otp,
             'otp_expires_at' => now()->addMinutes(10)
         ]);
 
@@ -51,7 +50,7 @@ class AuthService
     public function verifyOtp(User $user, string $otp)
     {
         if (
-            $user->email_otp !== $otp ||
+            $user->otp_code !== $otp ||
             $user->otp_expires_at < now()
         ) {
             return false;
@@ -59,7 +58,7 @@ class AuthService
 
         $user->update([
             'email_verified_at' => now(),
-            'email_otp' => null,
+            'otp_code' => null,
             'otp_expires_at' => null,
         ]);
 

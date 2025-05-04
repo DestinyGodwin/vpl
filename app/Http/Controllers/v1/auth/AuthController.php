@@ -32,7 +32,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid or expired OTP.'], 422);
     }
 
-    public function resendOtp(Request $request)
+    public function resendOtp(VerifyOtpRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
         $this->authService->sendOtp($user);
