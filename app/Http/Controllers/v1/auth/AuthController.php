@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers\v1\auth;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Services\v1\auth\AuthService;
+use App\Http\Requests\v1\auth\LoginRequest;
+use App\Http\Requests\v1\auth\RegisterUserRequest;
+use App\Http\Requests\v1\auth\ResetPasswordRequest;
+use App\Http\Requests\v1\auth\ForgotPasswordRequest;
+
+class AuthController extends Controller
+{
+    public function __construct(protected AuthService $authService) {}
+
+    public function register(RegisterUserRequest $request)
+    {
+        $user = $this->authService->register($request->validated());
+        return response()->json(['message' => 'Registered. OTP sent.', 'user' => $user], 201);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
+        if ($this->authService->verifyOtp($user, $request->otp)) {
+            return response()->json(['message' => 'Email verified.']);
+        }
+
+        return response()->json(['message' => 'Invalid or expired OTP.'], 422);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
+        $this->authService->sendOtp($user);
+        return response()->json(['message' => 'OTP resent.']);
+    }
+
+    public function login(LoginRequest $request)
+    {
+        $token = $this->authService->login($request->validated());
+        if (!$token) return response()->json(['message' => 'Invalid credentials.'], 401);
+        return response()->json(['token' => $token]);
+    }
+
+    public function logout(Request $request)
+    {
+        $this->authService->logout($request->user());
+        return response()->json(['message' => 'Logged out.']);
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
+        $this->authService->sendOtp($user);
+        return response()->json(['message' => 'OTP sent to email.']);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        if (!$this->authService->verifyOtp($user, $request->otp)) {
+            return response()->json(['message' => 'Invalid OTP'], 422);
+        }
+
+        $user->update(['password' => bcrypt($request->password)]);
+        return response()->json(['message' => 'Password reset successful.']);
+    }}
