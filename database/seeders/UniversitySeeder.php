@@ -22,3 +22,4 @@ class UniversitySeeder extends Seeder
             foreach($unis as $u) University::create($u);
     }
 }
+}

@@ -23,6 +23,7 @@ class AuthService
         try {
             $this->sendOtp($user);
            // $user->sendEmailVerificationOtp(); 
+           Log::success('OTP email sent successfully: ' );
         } catch (\Throwable $e) {
             Log::error('OTP email failed: ' . $e->getMessage());
         }

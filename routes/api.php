@@ -16,7 +16,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-    Route::apiResource('universities', UniversityController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('universities', UniversityController::class);
 
 
     Route::middleware('auth:sanctum')->group(function () {
