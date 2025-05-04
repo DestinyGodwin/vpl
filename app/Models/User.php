@@ -24,6 +24,8 @@ class User extends Authenticatable
         'last_name',
         'phone',
         'email',
+        'otp_code',
+        'otp_expires_at',
         'password',
         'profile_picture',
         'university_id'
