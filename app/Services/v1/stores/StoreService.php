@@ -4,6 +4,7 @@ namespace App\Services\v1\stores;
 
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\v1\StoreCreatedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StoreService
@@ -47,9 +48,8 @@ class StoreService
      {
          $user = Auth::user();
          $imagePath = $request->file('image')->store('stores', 'public');
- 
-         return Store::create([
-             'user_id' => $user->id,
+     
+         $store = $user->stores()->create([
              'university_id' => $user->university_id,
              'name' => $request->name,
              'description' => $request->description,
@@ -57,6 +57,10 @@ class StoreService
              'image' => $imagePath,
              'next_payment_due' => now()->addMonth(),
          ]);
+     
+         $user->notify(new StoreCreatedNotification($store));
+     
+         return $store->load('university', 'user');
      }
      public function updateByOwner($id, $request)
      {
