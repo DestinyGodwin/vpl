@@ -53,16 +53,19 @@ class ProductService
 
     public function create($request)
     {
-        $store = Auth::user()->stores()->firstOrFail(); // get user's active store
-
-        $product = $store->products()->create($request->only(['name', 'description', 'price', 'category_id']));
-
+        $store = Auth::user()->stores()->firstOrFail();
+    
+        $product = $store->products()->create($request->only([
+            'name', 'description', 'price', 'category_id'
+        ]));
+    
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
-            }
+            $images = collect($request->file('images'))->map(function ($image) {
+                return ['path' => $image->store('products', 'public')];
+            });
+            $product->images()->createMany($images->all());
         }
-
+    
         return $product->load('category', 'images', 'store.user');
     }
 
