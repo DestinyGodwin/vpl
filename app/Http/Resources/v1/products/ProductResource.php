@@ -4,6 +4,7 @@ namespace App\Http\Resources\v1\products;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\v1\products\ProductImageResource;
 
 class ProductResource extends JsonResource
 {
@@ -23,7 +24,7 @@ class ProductResource extends JsonResource
             'price' => $this->price,
             'images' => ProductImageResource::collection($this->images),
             'user' => [
-                'name' => $this->store->user->name,
+                'name' => $this->store->user->first_name,
                 'email' => $this->store->user->email,
                 'phone' => $request->user() ? $this->store->user->phone : null,
             ],
