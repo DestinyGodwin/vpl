@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\v1\stores;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Services\v1\stores\StoreService;
+use App\Http\Resources\v1\stores\StoreResource;
 
 class StoreController extends Controller
 {
