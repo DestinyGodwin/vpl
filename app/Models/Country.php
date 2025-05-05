@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
@@ -10,6 +11,6 @@ class Country extends Model
    use  HasUuids,HasApiTokens;
    protected $fillable = 
    [
-    'name'
-   ]
+    'name',
+   ];
 }

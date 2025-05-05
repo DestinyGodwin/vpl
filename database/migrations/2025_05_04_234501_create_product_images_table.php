@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')->constrained()->onDelete('cascade');
             $table->string('image_path');
+            $table->timestamps();
         });
     }
 
