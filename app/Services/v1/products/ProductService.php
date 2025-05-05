@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\v1\producsts;
+namespace App\Services\v1\products;
 
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;

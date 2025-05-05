@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\v1\producsts;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Services\v1\producsts\ProductService;
+use App\Services\v1\products\ProductService;
 use App\Http\Requests\v1\products\ProductRequest;
+use App\Http\Resources\v1\products\ProductResource;
 
 class ProductController extends Controller
 {
