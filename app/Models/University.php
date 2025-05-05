@@ -15,5 +15,16 @@ class University extends Model
         'state',
         'country', 
     ];
+    // public function country() {
+    //     return $this->belongsTo(Country::class);
+    // }
+    
+    public function users() {
+        return $this->hasMany(User::class);
+    }
+    
+    public function stores() {
+        return $this->hasMany(Store::class);
+    }
   
 }
