@@ -26,7 +26,7 @@ class StoreRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'type' => ['required', 'in:regular,food'],
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,avif', 'max:2048'],
-            'status' => ['nullable', 'in:active,inactive'],
+            'status' => ['nullable', 'in:is_active,is_inactive'],
         ];
     }
 }
