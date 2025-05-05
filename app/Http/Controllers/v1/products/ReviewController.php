@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\v1\products;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\products\ReviewService;
 use App\Http\Resources\v1\products\ReviewResource;
