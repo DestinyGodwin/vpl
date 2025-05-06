@@ -26,7 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('universities', UniversityController::class);
 
     // Authenticated routes
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::apiResource('universities', UniversityController::class)->only('store');
         // Store (write operations)
