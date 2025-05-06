@@ -47,6 +47,7 @@ class StoreService
      public function create($request)
      {
          $user = Auth::user();
+     
          $imagePath = $request->file('image')->store('stores', 'public');
      
          $store = $user->stores()->create([
@@ -62,27 +63,30 @@ class StoreService
      
          return $store->load('university', 'user');
      }
+     
      public function updateByOwner($id, $request)
      {
-        $user = Auth::user();
-
-        if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-       
-            return false;
-        }
+         $user = Auth::user();
+     
+         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
+             return false;
+         }
+     
          try {
-             $store = Auth::user()->stores()->findOrFail($id);
+             $store = $user->stores()->findOrFail($id);
      
              if ($request->hasFile('image')) {
                  $store->image = $request->file('image')->store('stores', 'public');
              }
      
              $store->update($request->only(['name', 'description', 'type', 'status']));
+     
              return $store->fresh();
          } catch (ModelNotFoundException) {
              return null;
          }
      }
+     
      
      public function deleteByOwner($id)
      {
