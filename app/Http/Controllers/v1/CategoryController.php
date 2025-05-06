@@ -14,26 +14,20 @@ class CategoryController extends Controller
         ]);
     }
 
-    // GET /api/categories/regular
-    public function regularCategories()
+    public function getByStoreType(string $store_type)
     {
-        $categories = Category::whereHas('products.store', function ($query) {
-            $query->where('type', 'regular');
-        })->distinct()->get();
+        $validTypes = ['regular', 'food'];
+
+        if (!in_array($store_type, $validTypes)) {
+            return response()->json([
+                'message' => 'Invalid store type. Valid types are: regular, food.',
+            ], 422);
+        }
+
+        $categories = Category::where('store_type', $store_type)->get();
 
         return response()->json([
-            'categories' => $categories,
-        ]);
-    }
-
-    // GET /api/categories/food
-    public function foodCategories()
-    {
-        $categories = Category::whereHas('products.store', function ($query) {
-            $query->where('type', 'food');
-        })->distinct()->get();
-
-        return response()->json([
+            'store_type' => $store_type,
             'categories' => $categories,
         ]);
     }

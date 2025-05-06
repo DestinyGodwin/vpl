@@ -3,7 +3,10 @@
 namespace App\Services\v1\products;
 
 use App\Models\Product;
+use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
@@ -50,43 +53,128 @@ class ProductService
             ->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
             ->with('category', 'images', 'store.user')->get();
     }
-
-    public function create($request)
+    public function create($request): Product
     {
-        $store = Auth::user()->stores()->firstOrFail();
-    
+        $store = Auth::user()->stores()->first();
+
         $product = $store->products()->create($request->only([
             'name', 'description', 'price', 'category_id'
         ]));
-    
+
         if ($request->hasFile('images')) {
-            $images = collect($request->file('images'))->map(function ($image) {
-                return ['path' => $image->store('products', 'public')];
-            });
+            $images = collect($request->file('images'))->map(fn($image) => [
+                'path' => $image->store('products', 'public'),
+            ]);
+
             $product->images()->createMany($images->all());
         }
-    
+
         return $product->load('category', 'images', 'store.user');
     }
 
-    public function update($id, $request)
+    public function update(string $id, Request $request): Product
     {
-        $product = Auth::user()->stores()->with('products')->get()
-            ->pluck('products')->flatten()->firstWhere('id', $id);
+        $product = Product::findOrFail($id);
 
-        if (!$product) abort(404, 'Product not found or not owned.');
-
-        $product->update($request->only(['name', 'description', 'price', 'category_id']));
-
-        if ($request->hasFile('images')) {
-            $product->images()->delete(); // delete old images
-            foreach ($request->file('images') as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
-            }
+        if ($product->store->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized.');
         }
 
-        return $product->fresh(['category', 'images', 'store.user']);
+        $product->update($request->only([
+            'name', 'description', 'price', 'category_id'
+        ]));
+
+        if ($request->hasFile('images')) {
+            $product->images()->delete();
+
+            $images = collect($request->file('images'))->map(fn($image) => [
+                'path' => $image->store('products', 'public'),
+            ]);
+
+            $product->images()->createMany($images->all());
+        }
+
+        return $product->load('category', 'images', 'store.user');
     }
+
+ 
+// public function create($request)
+// {
+//     $user = Auth::user();
+
+//     $store = $user->stores()->first();
+
+//     if (!$store) {
+//         throw ValidationException::withMessages([
+//             'store' => ['You have not created a store yet.']
+//         ]);
+//     }
+
+//     $category = Category::find($request->category_id);
+
+//     if (!$category || $category->store_type !== $store->type) {
+//         throw ValidationException::withMessages([
+//             'category_id' => ['Upload the product to the proper store type.']
+//         ]);
+//     }
+
+ 
+//     $product = $store->products()->create($request->only([
+//         'name', 'description', 'price', 'category_id'
+//     ]));
+
+   
+//     if ($request->hasFile('images')) {
+//         $images = collect($request->file('images'))->map(function ($image) {
+//             return ['path' => $image->store('products', 'public')];
+//         });
+//         $product->images()->createMany($images->all());
+//     }
+
+//     return $product->load('category', 'images', 'store.user');
+// }
+
+// public function update(string $id, Request $request): Product
+// {
+//     $user = Auth::user();
+//     $product = Product::findOrFail($id);
+
+//     if ($product->store->user_id !== $user->id) {
+//         abort(403, 'Unauthorized.');
+//     }
+
+//     $store = $user->stores()->first();
+
+//     if (!$store) {
+//         throw ValidationException::withMessages([
+//             'store' => ['You have not created a store yet.']
+//         ]);
+//     }
+
+//     if ($request->filled('category_id')) {
+//         $category = Category::find($request->category_id);
+
+//         if (!$category || $category->store_type !== $store->type) {
+//             throw ValidationException::withMessages([
+//                 'category_id' => ['Upload the product to the proper store type.']
+//             ]);
+//         }
+//     }
+
+  
+//     $product->update($request->only(['name', 'description', 'price', 'category_id']));
+//     if ($request->hasFile('images')) {
+//         $product->images()->delete();
+
+//         $images = collect($request->file('images'))->map(function ($image) {
+//             return ['path' => $image->store('products', 'public')];
+//         });
+
+//         $product->images()->createMany($images->all());
+//     }
+
+//     return $product->load('category', 'images', 'store.user');
+// }
 
     public function delete($id)
     {

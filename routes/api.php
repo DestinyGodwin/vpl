@@ -26,8 +26,8 @@ Route::prefix('v1')->group(function () {
     // University Resource
     Route::apiResource('universities', UniversityController::class);
     Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/regular', [CategoryController::class, 'regularCategories']);
-Route::get('/categories/food', [CategoryController::class, 'foodCategories']);
+    Route::get('/categories/{store_type}', [CategoryController::class, 'getByStoreType']);
+
 
     // Authenticated routes
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
