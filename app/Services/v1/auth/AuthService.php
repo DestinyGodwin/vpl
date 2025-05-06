@@ -62,11 +62,15 @@ class AuthService
             return false;
         }
 
-        $user->update([
-            'email_verified_at' => now(),
-            'otp_code' => null,
-            'otp_expires_at' => null,
-        ]);
+        // $user->update([
+        //     'email_verified_at' => now(),
+        //     'otp_code' => null,
+        //     'otp_expires_at' => null,
+        // ]);
+        $user->email_verified_at = now();
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->save();
 
         return true;
     }
@@ -85,6 +89,3 @@ class AuthService
         $user->currentAccessToken()->delete();
     }
 }
-
-
-
