@@ -2,11 +2,12 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\v1\CategoryController;
 use App\Http\Controllers\v1\auth\AuthController;
 use App\Http\Controllers\v1\UniversityController;
 use App\Http\Controllers\v1\stores\StoreController;
-use App\Http\Controllers\v1\products\ProductController;
 use App\Http\Controllers\v1\products\ReviewController;
+use App\Http\Controllers\v1\products\ProductController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -24,6 +25,9 @@ Route::prefix('v1')->group(function () {
 
     // University Resource
     Route::apiResource('universities', UniversityController::class);
+    Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/regular', [CategoryController::class, 'regularCategories']);
+Route::get('/categories/food', [CategoryController::class, 'foodCategories']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
