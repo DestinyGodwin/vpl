@@ -62,9 +62,9 @@ class ProductService
         ]));
 
         if ($request->hasFile('images')) {
-            $images = collect($request->file('images'))->map(fn($image) => [
-                'path' => $image->store('products', 'public'),
-            ]);
+            $images = collect($request->file('images'))->map(function ($image) {
+                return ['image_path' => $image->store('products', 'public')];
+            });
 
             $product->images()->createMany($images->all());
         }

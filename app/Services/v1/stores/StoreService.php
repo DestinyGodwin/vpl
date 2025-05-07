@@ -13,110 +13,111 @@ class StoreService
      * Create a new class instance.
      */
 
-     public function getAll()
-     {
-         return Store::with('university', 'user')->latest()->get();
-     }
- 
-     public function getByType(string $type)
-     {
-         return Store::where('type', $type)->with('university', 'user')->latest()->get();
-     }
- 
-     public function getUserStores()
-     {
-         return Auth::user()->stores()->with('university')->get();
-     }
- 
-     public function getByUniversity($universityId, $type = null)
-     {
-         return Store::when($type, fn($q) => $q->where('type', $type))
-                     ->where('university_id', $universityId)
-                     ->with('user')
-                     ->get();
-     }
- 
-     public function getByCountry($countryId, $type = null)
-     {
-         return Store::whereHas('university', fn($q) => $q->where('country_id', $countryId))
-                     ->when($type, fn($q) => $q->where('type', $type))
-                     ->with('user', 'university')
-                     ->get();
-     }
- 
-     public function create($request)
-     {
-         $user = Auth::user();
-     
-         $imagePath = $request->file('image')->store('stores', 'public');
-     
-         $store = $user->stores()->create([
-             'university_id' => $user->university_id,
-             'name' => $request->name,
-             'description' => $request->description,
-             'type' => $request->type,
-             'image' => $imagePath,
-             'next_payment_due' => now()->addMonth(),
-         ]);
-     
-         $user->notify(new StoreCreatedNotification($store));
-     
-         return $store->load('university', 'user');
-     }
-     
-     public function updateByOwner($id, $request)
-     {
-         $user = Auth::user();
-     
-         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-             return false;
-         }
-     
-         try {
-             $store = $user->stores()->findOrFail($id);
-     
-             if ($request->hasFile('image')) {
-                 $store->image = $request->file('image')->store('stores', 'public');
-             }
-     
-             $store->update($request->only(['name', 'description', 'type', 'status']));
-     
-             return $store->fresh();
-         } catch (ModelNotFoundException) {
-             return null;
-         }
-     }
-     
-     
-     public function deleteByOwner($id)
-     {
+    public function getAll()
+    {
+        return Store::with('university', 'user')->latest()->get();
+    }
+
+    public function getByType(string $type)
+    {
+        return Store::where('type', $type)->with('university', 'user')->latest()->get();
+    }
+
+    public function getUserStores()
+    {
+        return Auth::user()->stores()->with('university')->get();
+    }
+
+    public function getByUniversity($universityId, $type = null)
+    {
+        return Store::when($type, fn($q) => $q->where('type', $type))
+            ->where('university_id', $universityId)
+            ->with('user')
+            ->get();
+    }
+
+    public function getByCountry($countryId, $type = null)
+    {
+        return Store::whereHas('university', fn($q) => $q->where('country_id', $countryId))
+            ->when($type, fn($q) => $q->where('type', $type))
+            ->with('user', 'university')
+            ->get();
+    }
+
+    public function create($request)
+    {
+        $user = Auth::user();
+
+        $imagePath = $request->file('image')->store('stores', 'public');
+
+        $store = $user->stores()->create([
+            'university_id' => $user->university_id,
+            'name' => $request->name,
+            'description' => $request->description,
+            'type' => $request->type,
+            'image' => $imagePath,
+            'next_payment_due' => now()->addMonth(),
+        ]);
+
+        $user->notify(new StoreCreatedNotification($store));
+
+        return $store->load('university', 'user');
+    }
+
+    public function updateByOwner($id, $request)
+    {
         $user = Auth::user();
 
         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-       
+            return false;
+        }
+
+        try {
+            $store = $user->stores()->findOrFail($id);
+
+            if ($request->hasFile('image')) {
+                $store->image = $request->file('image')->store('stores', 'public');
+            }
+
+            $store->update($request->only(['name', 'description', 'type', 'status']));
+
+            return $store->fresh();
+        } catch (ModelNotFoundException) {
+            return null;
+        }
+    }
+
+
+
+    public function deleteByOwner($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
+
             return false;
         }
         try {
-             $store = Auth::user()->stores()->findOrFail($id);
-             $store->delete();
-             return true;
-         } catch (ModelNotFoundException) {
-             return false;
-         }
-     }
-     
-     public function findById($id)
-     {
+            $store = Auth::user()->stores()->findOrFail($id);
+            $store->delete();
+            return true;
+        } catch (ModelNotFoundException) {
+            return false;
+        }
+    }
+
+    public function findById($id)
+    {
         $user = Auth::user();
 
         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-       
+
             return false;
         }
-         try {
-             return Store::with('university', 'user')->findOrFail($id);
-         } catch (ModelNotFoundException) {
-             return null;
-         }
-     }
+        try {
+            return Store::with('university', 'user')->findOrFail($id);
+        } catch (ModelNotFoundException) {
+            return null;
+        }
+    }
 }
