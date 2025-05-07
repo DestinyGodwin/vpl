@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\v1\stores;
 
+use auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class StoreResource extends JsonResource
             'id' => $this->id,
             'user' => [
                 'name' => $this->user->first_name,
-                'phone' => $this->user->phone,
+                'phone' => auth('sanctum')->user()?->id ? $this->user->phone : null,
             ],
             'name' => $this->name,
             'type' => $this->type,

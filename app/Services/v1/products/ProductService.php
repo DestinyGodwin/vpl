@@ -4,6 +4,7 @@ namespace App\Services\v1\products;
 
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -19,40 +20,143 @@ class ProductService
     }
     public function getAll() { return Product::with('category', 'images', 'store.user')->latest()->get(); }
 
+    // public function getByStoreType(string $type)
+    // {
+    //     return Product::whereHas('store', fn($q) => $q->where('type', $type))
+    //         ->with('category', 'images', 'store.user')->latest()->get();
+    // }
+
+    // public function getByUser()
+    // {
+    //     return Product::whereHas('store', fn($q) => $q->where('user_id', Auth::id()))
+    //         ->with('category', 'images', 'store.user')->get();
+    // }
+
+    // public function getByUniversity($universityId, $type = null)
+    // {
+    //     return Product::whereHas('store', function ($q) use ($universityId, $type) {
+    //         $q->where('university_id', $universityId);
+    //         if ($type) $q->where('type', $type);
+    //     })->with('category', 'images', 'store.user')->get();
+    // }
+
+    // public function getByCountry($countryId, $type = null)
+    // {
+    //     return Product::whereHas('store.university', function ($q) use ($countryId) {
+    //         $q->where('country_id', $countryId);
+    //     })->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
+    //     ->with('category', 'images', 'store.user')->get();
+    // }
+
+    // public function getByCategory($categoryId, $type = null)
+    // {
+    //     return Product::where('category_id', $categoryId)
+    //         ->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
+    //         ->with('category', 'images', 'store.user')->get();
+    // }
     public function getByStoreType(string $type)
-    {
-        return Product::whereHas('store', fn($q) => $q->where('type', $type))
-            ->with('category', 'images', 'store.user')->latest()->get();
+{
+    if (!in_array($type, ['regular', 'food'])) {
+        return collect(); // empty result for invalid type
     }
 
-    public function getByUser()
-    {
-        return Product::whereHas('store', fn($q) => $q->where('user_id', Auth::id()))
-            ->with('category', 'images', 'store.user')->get();
+    return Product::whereHas('store', fn($q) => $q->where('type', $type))
+        ->with('category', 'images', 'store.user')
+        ->latest()
+        ->get();
+}
+
+// public function getByUser()
+// {
+//     $user = Auth::user();
+
+//     if (!$user) {
+//         return collect(); // not logged in
+//     }
+
+//     return Product::whereHas('store', fn($q) => $q->where('user_id', $user->id))
+//         ->with('category', 'images', 'store.user')
+//         ->latest()
+//         ->get();
+// }
+public function getByUser()
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return collect(); // Not authenticated
     }
 
-    public function getByUniversity($universityId, $type = null)
-    {
-        return Product::whereHas('store', function ($q) use ($universityId, $type) {
+    return Product::whereHas('store', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->with('category', 'images', 'store.user')
+        ->latest()
+        ->get();
+}
+
+public function getByUniversity($universityId, $type = null)
+{
+    // Validate $type only if it's provided
+    $allowedTypes = ['regular', 'food'];
+    $isValidType = $type === null || in_array($type, $allowedTypes);
+
+    if (!$isValidType) {
+        return collect(); // Invalid type — return empty collection gracefully
+    }
+
+    return Product::whereHas('store', function ($q) use ($universityId, $type) {
             $q->where('university_id', $universityId);
-            if ($type) $q->where('type', $type);
-        })->with('category', 'images', 'store.user')->get();
+
+            if ($type !== null) {
+                $q->where('type', $type);
+            }
+        })
+        ->with(['category', 'images', 'store.user'])
+        ->latest()
+        ->get();
+}
+
+public function getByCountry($countryId, $type = null)
+{
+    if (!is_string($countryId) || !preg_match('/^[\w-]{36}$/', $countryId)) {
+        return collect();
     }
 
-    public function getByCountry($countryId, $type = null)
-    {
-        return Product::whereHas('store.university', function ($q) use ($countryId) {
+    return Product::whereHas('store.university', function ($q) use ($countryId) {
             $q->where('country_id', $countryId);
-        })->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
-        ->with('category', 'images', 'store.user')->get();
+        })
+        ->when(in_array($type, ['regular', 'food']), function ($q) use ($type) {
+            $q->whereHas('store', fn($q) => $q->where('type', $type));
+        })
+        ->with('category', 'images', 'store.user')
+        ->latest()
+        ->get();
+}
+
+public function getByCategory($categoryId, $type = null)
+{
+    if (!is_numeric($categoryId)) {
+        return collect();
     }
 
-    public function getByCategory($categoryId, $type = null)
-    {
-        return Product::where('category_id', $categoryId)
-            ->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
-            ->with('category', 'images', 'store.user')->get();
+    return Product::where('category_id', $categoryId)
+        ->when(in_array($type, ['regular', 'food']), function ($q) use ($type) {
+            $q->whereHas('store', fn($q) => $q->where('type', $type));
+        })
+        ->with('category', 'images', 'store.user')
+        ->latest()
+        ->get();
+}
+
+public function findById($id)
+{
+    if (!Str::isUuid($id)) {
+        return null;
     }
+
+    return Product::with('category', 'images', 'store.user')->find($id);
+}
     public function create($request): Product
     {
         $store = Auth::user()->stores()->first();
@@ -186,8 +290,8 @@ class ProductService
         $product->delete();
     }
 
-    public function findById($id)
-    {
-        return Product::with('category', 'images', 'store.user')->findOrFail($id);
-    }
+    // public function findById($id)
+    // {
+    //     return Product::with('category', 'images', 'store.user')->findOrFail($id);
+    // }
 }
