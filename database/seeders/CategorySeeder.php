@@ -12,23 +12,15 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = [
-            'Electronics',
-            'Groceries',
-            'Clothing',
-            'Restaurants',
-            'Bakery',
-            'Fast Food',
-            'Home Appliances',
-            'Beauty & Health',
-            'Books',
-            'Toys',
-        ];
+        $categories =  ['name' => 'Phones', 'store_type' => 'regular'],
+        ['name' => 'Laptops', 'store_type' => 'regular'],
+        ['name' => 'Pizza', 'store_type' => 'food'],
+        ['name' => 'Burgers', 'store_type' => 'food'],
 
         foreach ($categories as $name) {
             Category::updateOrCreate(
                 ['name' => $name]
-          
+                [ 'store_type' => $data['store_type']]
             );
         }
     }
