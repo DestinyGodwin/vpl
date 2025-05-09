@@ -4,6 +4,7 @@ namespace App\Services\v1\stores;
 
 use Storage;
 use App\Models\Store;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\v1\StoreCreatedNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,8 +35,16 @@ class StoreService
             'image' => $imagePath,
             'next_payment_due' => now()->addMonth(),
         ]);
-
-        $user->notify(new StoreCreatedNotification($store));
+        try {
+          
+            $user->notify((new StoreCreatedNotification($store))->delay(now()->addSeconds(5)));
+        } catch (\Throwable $e) {
+         
+            Log::error('Failed to send store creation notification: ' . $e->getMessage(), [
+                'store_id' => $store->id,
+                'user_id' => $user->id,
+            ]);
+        }
 
         return $store->load('university', 'user');
     }
