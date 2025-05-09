@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PasswordChangedSuccessNotification extends Notification
+class PasswordChangedSuccessNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
