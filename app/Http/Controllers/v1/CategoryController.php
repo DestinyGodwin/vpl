@@ -15,7 +15,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    // GET /api/categories/{id}
+
     public function show($id)
     {
         $category = Category::find($id);

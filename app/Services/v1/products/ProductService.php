@@ -3,6 +3,7 @@
 namespace App\Services\v1\products;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 
 class ProductService
@@ -18,18 +19,17 @@ class ProductService
 {
     $category = Category::findOrFail($request->category_id);
 
-    // Get store matching the category's store type
     $store = Auth::user()->stores()->where('type', $category->store_type)->firstOrFail();
 
-    // Create product under the right store
     $product = $store->products()->create($request->only([
         'name', 'description', 'price', 'category_id'
     ]));
 
     if ($request->hasFile('images')) {
-        $images = collect($request->file('images'))->map(function ($image) {
-            return ['path' => $image->store('products', 'public')];
-        });
+        $images = collect($request->file('images'))->map(fn($image) => [
+            'image_path' => $image->store('products', 'public'),
+        ]);
+
 
         $product->images()->createMany($images->all());
     }
