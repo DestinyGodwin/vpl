@@ -39,6 +39,7 @@ Route::get('/categories/food', [CategoryController::class, 'foodCategories']);
             Route::put('/{id}', [StoreController::class, 'update']);
             Route::delete('/{id}', [StoreController::class, 'destroy']);
             Route::get('/user/my', [StoreController::class, 'myStores']);
+            
 
         });
 
@@ -59,18 +60,11 @@ Route::get('/categories/food', [CategoryController::class, 'foodCategories']);
     // Store (public GET routes)
     Route::prefix('stores')->group(function () {
         Route::get('/', [StoreController::class, 'index']);
-        Route::get('/regular', [StoreController::class, 'regularStores']);
-        Route::get('/food', [StoreController::class, 'foodStores']);
-
-        Route::get('/university/{universityId}', [StoreController::class, 'byUniversity']);
-        Route::get('/university/{universityId}/regular', [StoreController::class, 'regularByUniversity']);
-        Route::get('/university/{universityId}/food', [StoreController::class, 'foodByUniversity']);
-
-        Route::get('/country/{countryId}', [StoreController::class, 'byCountry']);
-        Route::get('/country/{countryId}/regular', [StoreController::class, 'regularByCountry']);
-        Route::get('/country/{countryId}/food', [StoreController::class, 'foodByCountry']);
-
         Route::get('/{id}', [StoreController::class, 'show']);
+    
+        Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
+        Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
+        Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
     });
 
     // Product (public GET routes)
