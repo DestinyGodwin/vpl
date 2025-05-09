@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
@@ -14,16 +13,22 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Phones', 'store_type' => 'regular'],
-            ['name' => 'Laptops', 'store_type' => 'regular'],
-            ['name' => 'Pizza', 'store_type' => 'food'],
-            ['name' => 'Burgers', 'store_type' => 'food'],
+            'Electronics',
+            'Groceries',
+            'Clothing',
+            'Restaurants',
+            'Bakery',
+            'Fast Food',
+            'Home Appliances',
+            'Beauty & Health',
+            'Books',
+            'Toys',
         ];
-        
-        foreach ($categories as $data) {
+
+        foreach ($categories as $name) {
             Category::updateOrCreate(
-                ['name' => $data['name']],
-                [ 'store_type' => $data['store_type']]
+                ['name' => $name]
+          
             );
         }
     }

@@ -26,8 +26,8 @@ Route::prefix('v1')->group(function () {
     // University Resource
     Route::apiResource('universities', UniversityController::class);
     Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/categories/{store_type}', [CategoryController::class, 'getByStoreType']);
-
+Route::get('/categories/regular', [CategoryController::class, 'regularCategories']);
+Route::get('/categories/food', [CategoryController::class, 'foodCategories']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
@@ -38,6 +38,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [StoreController::class, 'store']);
             Route::put('/{id}', [StoreController::class, 'update']);
             Route::delete('/{id}', [StoreController::class, 'destroy']);
+            Route::get('/user/my', [StoreController::class, 'myStores']);
+
         });
 
         // Product (write operations)
@@ -59,7 +61,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [StoreController::class, 'index']);
         Route::get('/regular', [StoreController::class, 'regularStores']);
         Route::get('/food', [StoreController::class, 'foodStores']);
-        Route::get('/user/my', [StoreController::class, 'myStores']);
 
         Route::get('/university/{universityId}', [StoreController::class, 'byUniversity']);
         Route::get('/university/{universityId}/regular', [StoreController::class, 'regularByUniversity']);
