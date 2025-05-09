@@ -19,6 +19,12 @@ class ProductController extends Controller
 
     public function myProducts() { return ProductResource::collection($this->productService->getByUser()); }
 
+    public function byUniversity($id) { return ProductResource::collection($this->productService->getByUniversity($id)); }
+
+    public function regularByUniversity($id) { return ProductResource::collection($this->productService->getByUniversity($id, 'regular')); }
+
+    public function foodByUniversity($id) { return ProductResource::collection($this->productService->getByUniversity($id, 'food')); }
+
     public function byCountry($id) { return ProductResource::collection($this->productService->getByCountry($id)); }
 
     public function regularByCountry($id) { return ProductResource::collection($this->productService->getByCountry($id, 'regular')); }
@@ -36,19 +42,7 @@ class ProductController extends Controller
     public function show($id) { return new ProductResource($this->productService->findById($id)); }
 
     public function update(ProductRequest $request, $id) { return new ProductResource($this->productService->update($id, $request)); }
-    public function getByUniversity(string $universityId, string $type = null)
-    {
-        $products = $this->productService->getByUniversity($universityId, $type);
-    
-        // Optionally return 404 if nothing is found
-        if ($products->isEmpty()) {
-            return response()->json([
-                'message' => 'No products found for the given parameters.'
-            ], 404);
-        }
-    
-        return ProductResource::collection($products);
-    }
+
     public function destroy($id)
     {
         $this->productService->delete($id);

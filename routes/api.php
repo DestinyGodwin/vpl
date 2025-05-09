@@ -43,7 +43,6 @@ Route::prefix('v1')->group(function () {
         // Product (write operations)
         Route::prefix('products')->group(function () {
             Route::post('/', [ProductController::class, 'store']);
-             Route::get('/user/my', [ProductController::class, 'myProducts']);
             Route::put('/{id}', [ProductController::class, 'update']);
             Route::delete('/{id}', [ProductController::class, 'destroy']);
         });
@@ -79,9 +78,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/regular', [ProductController::class, 'regular']);
         Route::get('/food', [ProductController::class, 'food']);
 
-        Route::get('/stores/university/{universityId}/{type?}', [ProductController::class, 'getByUniversity']);
+        Route::get('/user/my', [ProductController::class, 'myProducts']);
 
-        
+        Route::get('/university/{id}', [ProductController::class, 'byUniversity']);
+        Route::get('/university/{id}/regular', [ProductController::class, 'regularByUniversity']);
+        Route::get('/university/{id}/food', [ProductController::class, 'foodByUniversity']);
 
         Route::get('/country/{id}', [ProductController::class, 'byCountry']);
         Route::get('/country/{id}/regular', [ProductController::class, 'regularByCountry']);

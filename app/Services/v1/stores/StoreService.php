@@ -108,9 +108,9 @@ class StoreService
 
     public function findById($id)
     {
-      
+        $user = Auth::user();
 
-        if ( !preg_match('/^[\w-]{36}$/', $id)) {
+        if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
 
             return false;
         }
