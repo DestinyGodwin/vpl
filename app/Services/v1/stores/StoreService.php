@@ -2,6 +2,7 @@
 
 namespace App\Services\v1\stores;
 
+use Storage;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\v1\StoreCreatedNotification;
@@ -37,24 +38,35 @@ class StoreService
          $user->notify(new StoreCreatedNotification($store));
      
          return $store->load('university', 'user');
-     }
-     public function updateByOwner($id, $request)
+     }public function updateByOwner($id, $request)
      {
-        $user = Auth::user();
-
-        if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-       
-            return false;
-        }
-         try {
-             $store = Auth::user()->stores()->findOrFail($id);
+         $user = Auth::user();
      
+         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
+             return false;
+         }
+     
+         try {
+             $store = $user->stores()->findOrFail($id);
+     
+             // Update image if provided
              if ($request->hasFile('image')) {
+                 if ($store->image && \Storage::disk('public')->exists($store->image)) {
+                     \Storage::disk('public')->delete($store->image);
+                 }
+     
                  $store->image = $request->file('image')->store('stores', 'public');
              }
      
-             $store->update($request->only(['name', 'description', 'type', 'status']));
+             // Only update fields that are present in request
+             $fieldsToUpdate = collect(['name', 'description', 'type', 'status'])
+                 ->filter(fn($field) => $request->filled($field))
+                 ->all();
+     
+             $store->update($request->only($fieldsToUpdate));
+     
              return $store->fresh();
+     
          } catch (ModelNotFoundException) {
              return null;
          }

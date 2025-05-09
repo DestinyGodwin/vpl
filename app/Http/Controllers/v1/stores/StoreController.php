@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\v1\stores\StoreService;
 use App\Http\Requests\v1\stores\StoreRequest;
 use App\Http\Resources\v1\stores\StoreResource;
+use App\Http\Requests\v1\stores\UpdateStoreRequest;
 
 class StoreController extends Controller
 {
@@ -30,7 +31,7 @@ class StoreController extends Controller
 
   
 
-public function update(StoreRequest $request, $id)
+public function update(UpdateStoreRequest $request, $id)
 {
     $store = $this->storeService->updateByOwner($id, $request);
     if (!$store) {
