@@ -12,55 +12,15 @@ class StoreController extends Controller
 
     public function __construct(protected StoreService $storeService) {}
 
-    public function index()
-    {
-        return StoreResource::collection($this->storeService->getAll());
-    }
-
-    public function regularStores()
-    {
-        return StoreResource::collection($this->storeService->getByType('regular'));
-    }
-
-    public function foodStores()
-    {
-        return StoreResource::collection($this->storeService->getByType('food'));
-    }
+  
 
     public function myStores()
     {
         return StoreResource::collection($this->storeService->getUserStores());
     }
 
-    public function byUniversity($universityId)
-    {
-        return StoreResource::collection($this->storeService->getByUniversity($universityId));
-    }
+   
 
-    public function regularByUniversity($universityId)
-    {
-        return StoreResource::collection($this->storeService->getByUniversity($universityId, 'regular'));
-    }
-
-    public function foodByUniversity($universityId)
-    {
-        return StoreResource::collection($this->storeService->getByUniversity($universityId, 'food'));
-    }
-
-    public function byCountry($countryId)
-    {
-        return StoreResource::collection($this->storeService->getByCountry($countryId));
-    }
-
-    public function regularByCountry($countryId)
-    {
-        return StoreResource::collection($this->storeService->getByCountry($countryId, 'regular'));
-    }
-
-    public function foodByCountry($countryId)
-    {
-        return StoreResource::collection($this->storeService->getByCountry($countryId, 'food'));
-    }
 
     public function store(StoreRequest $request)
     {
@@ -68,15 +28,7 @@ class StoreController extends Controller
         return new StoreResource($store);
     }
 
-    public function show($id)
-{
-    $store = $this->storeService->findById($id);
-    if (!$store) {
-        return response()->json(['message' => 'Store not found.'], 404);
-    }
-
-    return new StoreResource($store);
-}
+  
 
 public function update(StoreRequest $request, $id)
 {
@@ -97,4 +49,52 @@ public function destroy($id)
 
     return response()->json(['message' => 'Store deleted successfully.']);
 }
+public function index()
+{
+    return StoreResource::collection($this->storeService->getAll());
+}
+
+public function byType(string $type)
+{
+    $stores = $this->storeService->getByType($type);
+
+    if ($stores->isEmpty()) {
+        return response()->json(['message' => 'No stores found for the given type.'], 404);
+    }
+
+    return StoreResource::collection($stores);
+}
+
+public function byUniversity(string $universityId, string $type = null)
+{
+    $stores = $this->storeService->getByUniversity($universityId, $type);
+
+    if ($stores->isEmpty()) {
+        return response()->json(['message' => 'No stores found for the given university or type.'], 404);
+    }
+
+    return StoreResource::collection($stores);
+}
+
+public function byCountry(string $countryId, string $type = null)
+{
+    $stores = $this->storeService->getByCountry($countryId, $type);
+
+    if ($stores->isEmpty()) {
+        return response()->json(['message' => 'No stores found for the given country or type.'], 404);
+    }
+
+    return StoreResource::collection($stores);
+}
+
+public function show($id)
+{
+    $store = $this->storeService->findById($id);
+    if (!$store) {
+        return response()->json(['message' => 'Store not found.'], 404);
+    }
+
+    return new StoreResource($store);
+}
+
 }
