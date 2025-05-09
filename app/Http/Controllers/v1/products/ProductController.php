@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\v1\products\ProductService;
 use App\Http\Requests\v1\products\ProductRequest;
 use App\Http\Resources\v1\products\ProductResource;
+use App\Http\Requests\v1\products\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -41,8 +42,11 @@ class ProductController extends Controller
 
     public function show($id) { return new ProductResource($this->productService->findById($id)); }
 
-    public function update(ProductRequest $request, $id) { return new ProductResource($this->productService->update($id, $request)); }
-
+    public function update(UpdateProductRequest $request, $id)
+    {
+        $product = $this->productService->update($id, $request);
+        return new ProductResource($product);
+    }
     public function destroy($id)
     {
         $this->productService->delete($id);

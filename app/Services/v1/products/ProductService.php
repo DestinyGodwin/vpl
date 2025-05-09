@@ -73,28 +73,30 @@ class ProductService
             ->when($type, fn($q) => $q->whereHas('store', fn($q) => $q->where('type', $type)))
             ->with('category', 'images', 'store.user')->get();
     }
-
-   
-
     public function update($id, $request)
     {
-        $product = Auth::user()->stores()->with('products')->get()
-            ->pluck('products')->flatten()->firstWhere('id', $id);
-
-        if (!$product) abort(404, 'Product not found or not owned.');
-
-        $product->update($request->only(['name', 'description', 'price', 'category_id']));
-
-        if ($request->hasFile('images')) {
-            $product->images()->delete(); // delete old images
-            foreach ($request->file('images') as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
-            }
+        $user = Auth::user();
+        $product = Product::whereHas('store', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->where('id', $id)->first();
+    
+        if (!$product) {
+            abort(404, 'Product not found or not owned.');
         }
-
+        $category = Category::find($request->category_id);
+        if ($category && $category->store_type !== $product->store->type) {
+            abort(422, 'Category store type mismatch.');
+        }
+        $product->update($request->only(['name', 'description', 'price', 'category_id']));
+        if ($request->hasFile('images')) {
+            $product->images()->delete(); // remove old
+            $images = collect($request->file('images'))->map(fn($img) => [
+                'path' => $img->store('products', 'public'),
+            ]);
+            $product->images()->createMany($images->all());
+        }
         return $product->fresh(['category', 'images', 'store.user']);
     }
-
     public function delete($id)
     {
         $product = Auth::user()->stores()->with('products')->get()
@@ -104,7 +106,6 @@ class ProductService
 
         $product->delete();
     }
-
     public function findById($id)
     {
         return Product::with('category', 'images', 'store.user')->findOrFail($id);
