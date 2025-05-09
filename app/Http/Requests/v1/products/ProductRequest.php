@@ -30,6 +30,25 @@ class ProductRequest extends FormRequest
             'images.*' => ['required','image', 'mimes:jpeg,jpg,png,gif,webp,avif','max:2048' ],         
         ];
     }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $user = Auth::user();
+
+            $store = $user->stores()->first();
+
+            if (!$store) {
+                $validator->errors()->add('store', 'You have not created a store yet.');
+                return;
+            }
+
+            $category = Category::find($this->category_id);
+
+            if (!$category || $category->store_type !== $store->type) {
+                $validator->errors()->add('category_id', 'Upload the product to the proper store type.');
+            }
+        });
+    }
     public function messages()
 {
     return [
