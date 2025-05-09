@@ -26,7 +26,7 @@ class ProductResource extends JsonResource
             'user' => [
                 'name' => $this->store->user->first_name,
                 'email' => $this->store->user->email,
-                'phone' => auth('sanctum')->user()?->id ? $this->store->user->phone : null,
+                'phone' => $request->user() ? $this->store->user->phone : null,
             ],
         ];
     }

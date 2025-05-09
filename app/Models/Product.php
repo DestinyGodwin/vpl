@@ -16,9 +16,7 @@ class Product extends Model
         'category_id',
         'description',
         'price',
-        'image_path',
         'status',
-        
     ];
     public function store() {
         return $this->belongsTo(Store::class);

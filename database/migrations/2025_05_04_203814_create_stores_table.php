@@ -22,7 +22,6 @@ return new class extends Migration
             $table->enum('status', ['is_active', 'is_inactive'])->default('is_active');
             $table->timestamp('next_payment_due')->nullable();
             $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
             $table->softDeletes();
       
         });
