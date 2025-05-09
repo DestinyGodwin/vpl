@@ -124,10 +124,8 @@ class StoreService
      
      public function findById($id)
      {
-         $user = Auth::user();
-     
-         if (!$user || !is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
-             return false;
+         if (!is_string($id) || !preg_match('/^[\w-]{36}$/', $id)) {
+             return null;
          }
      
          try {
@@ -136,6 +134,7 @@ class StoreService
              return null;
          }
      }
+     
      
      
 }
