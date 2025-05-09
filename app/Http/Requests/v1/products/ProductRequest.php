@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\v1\products;
 
+use App\Models\Category;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductRequest extends FormRequest
@@ -33,22 +35,21 @@ class ProductRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $user = Auth::user();
-
-            $store = $user->stores()->first();
-
-            if (!$store) {
-                $validator->errors()->add('store', 'You have not created a store yet.');
+            $category = Category::find($this->category_id);
+    
+            if (!$category) {
+                $validator->errors()->add('category_id', 'Invalid category.');
                 return;
             }
-
-            $category = Category::find($this->category_id);
-
-            if (!$category || $category->store_type !== $store->type) {
-                $validator->errors()->add('category_id', 'Upload the product to the proper store type.');
+    
+            $store = Auth::user()->stores()->where('type', $category->store_type)->first();
+    
+            if (!$store) {
+                $validator->errors()->add('store', 'You do not have a store for this category type.');
             }
         });
     }
+    
     public function messages()
 {
     return [

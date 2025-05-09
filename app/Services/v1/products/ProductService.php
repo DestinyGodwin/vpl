@@ -14,6 +14,29 @@ class ProductService
     {
         //
     }
+    public function create($request): Product
+{
+    $category = Category::findOrFail($request->category_id);
+
+    // Get store matching the category's store type
+    $store = Auth::user()->stores()->where('type', $category->store_type)->firstOrFail();
+
+    // Create product under the right store
+    $product = $store->products()->create($request->only([
+        'name', 'description', 'price', 'category_id'
+    ]));
+
+    if ($request->hasFile('images')) {
+        $images = collect($request->file('images'))->map(function ($image) {
+            return ['path' => $image->store('products', 'public')];
+        });
+
+        $product->images()->createMany($images->all());
+    }
+
+    return $product->load('category', 'images', 'store.user');
+}
+
     public function getAll() { return Product::with('category', 'images', 'store.user')->latest()->get(); }
 
     public function getByStoreType(string $type)
@@ -51,23 +74,7 @@ class ProductService
             ->with('category', 'images', 'store.user')->get();
     }
 
-    public function create($request)
-    {
-        $store = Auth::user()->stores()->firstOrFail();
-    
-        $product = $store->products()->create($request->only([
-            'name', 'description', 'price', 'category_id'
-        ]));
-    
-        if ($request->hasFile('images')) {
-            $images = collect($request->file('images'))->map(function ($image) {
-                return ['path' => $image->store('products', 'public')];
-            });
-            $product->images()->createMany($images->all());
-        }
-    
-        return $product->load('category', 'images', 'store.user');
-    }
+   
 
     public function update($id, $request)
     {
