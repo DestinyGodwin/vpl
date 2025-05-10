@@ -108,5 +108,10 @@ class AuthService
     
         return $user->fresh();
     }
+    public function getProfile()
+{
+    return Auth::user()->load('university');
+}
+
 
 }

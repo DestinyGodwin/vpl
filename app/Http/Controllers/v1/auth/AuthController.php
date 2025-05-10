@@ -79,8 +79,8 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Password reset successful.']);
     }
-    public function updateProile(UpdateProfileRequest $request){
-        $this->authService->updateProfile($request->validated());
+    public function updateProfile(UpdateProfileRequest $request){
+        $this->authService->updateProfile($request);
         return response()->json(['profile updated successfully']);
 
     }
