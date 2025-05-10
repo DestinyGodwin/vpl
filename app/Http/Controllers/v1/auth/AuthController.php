@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AuthService;
+use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\auth\LoginRequest;
 use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
