@@ -7,14 +7,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ProductRequestedNotification extends Notification
+class ProductRequestedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(public ProductRequestModel $productRequest)
+    public function __construct(public ProductRequest $productRequest)
     {
         //
     }
