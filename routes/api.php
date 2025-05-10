@@ -42,7 +42,11 @@ Route::prefix('v1')->group(function () {
 
         });
         Route::prefix('product-requests')->group(function () {
+            Route::get('/', [ProductRequestController::class, 'index']);
+            Route::get('/{id}', [ProductRequestController::class, 'show']);
             Route::post('/', [ProductRequestController::class, 'store']);
+            Route::put('/{id}', [ProductRequestController::class, 'update']);
+            Route::delete('/{id}', [ProductRequestController::class, 'destroy']);
         });
         
 

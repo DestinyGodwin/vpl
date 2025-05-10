@@ -24,4 +24,8 @@ class ProductRequest extends Model
     public function messages() {
         return $this->hasMany(ProductRequestMessage::class);
     }
+    public function images()
+{
+    return $this->hasMany(ProductRequestImage::class);
+}
 }

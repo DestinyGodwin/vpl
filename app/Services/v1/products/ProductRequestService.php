@@ -46,4 +46,33 @@ class ProductRequestService
     
         return $productRequest->load('user', 'category', 'images');
     }
+    public function index()
+    {
+        return ProductRequest::with('user', 'category')->latest()->get();
+    }
+
+    public function show($id)
+    {
+        return ProductRequest::with('user', 'category')->findOrFail($id);
+    }
+
+    public function update($request, $id)
+    {
+        $productRequest = ProductRequest::where('user_id', Auth::id())->findOrFail($id);
+
+        $productRequest->update([
+            'name' => $request->name ?? $productRequest->name,
+            'description' => $request->description ?? $productRequest->description,
+            'category_id' => $request->category_id ?? $productRequest->category_id,
+        ]);
+
+        return $productRequest->load('user', 'category');
+    }
+
+    public function destroy($id)
+    {
+        $productRequest = ProductRequest::where('user_id', Auth::id())->findOrFail($id);
+        $productRequest->delete();
+        return response()->json(['message' => 'Product request deleted successfully']);
+    }
 }
