@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\v1\auth\EmailOtpNotification;
 use App\Notifications\v1\auth\PasswordResetOtpNotification;
+use Illuminate\Support\Facades\Storage;
 
 class AuthService
 {
@@ -88,4 +89,24 @@ class AuthService
     {
         $user->currentAccessToken()->delete();
     }
+ 
+    public function updateProfile($request)
+    {
+        $user = Auth::user();
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            $user->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
+    
+        $user->fill($request->only([
+            'first_name', 'last_name', 'phone', 'email', 'university_id'
+        ]));
+    
+        $user->save();
+    
+        return $user->fresh();
+    }
+
 }
