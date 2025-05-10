@@ -30,13 +30,14 @@ class UpdateProductRequest extends FormRequest
             'category_id' => ['sometimes', 'exists:categories,id'],
             'images' => ['sometimes', 'array', 'min:1'],
             'images.*' => ['required_with:images', 'image', 'mimes:jpeg,jpg,png,gif,webp,avif', 'max:2048'],
+            'image_ids_to_delete' => ['sometimes', 'array'],
+            'image_ids_to_delete.*' => ['uuid', 'exists:product_images,id'],
         ];
     }
+
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $user = Auth::user();
-
             if ($this->has('category_id')) {
                 $category = Category::find($this->category_id);
 
@@ -45,7 +46,7 @@ class UpdateProductRequest extends FormRequest
                     return;
                 }
 
-                $store = $user->stores()->where('type', $category->store_type)->first();
+                $store = Auth::user()->stores()->where('type', $category->store_type)->first();
 
                 if (!$store) {
                     $validator->errors()->add('store', 'You do not have a store for this category type.');
@@ -61,6 +62,7 @@ class UpdateProductRequest extends FormRequest
             'images.*.image' => 'Each file must be a valid image.',
             'images.*.mimes' => 'Each image must be a jpeg, jpg, png, gif, or webp file.',
             'images.*.max' => 'Each image must not be larger than 2MB.',
+            'image_ids_to_delete.*.exists' => 'One or more selected images to delete do not exist.',
         ];
     }
 }

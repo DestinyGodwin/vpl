@@ -46,6 +46,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ProductController::class, 'store']);
             Route::put('/{id}', [ProductController::class, 'update']);
             Route::delete('/{id}', [ProductController::class, 'destroy']);
+            Route::get('/user', [ProductController::class, 'getByUser']);
+            Route::get('/user/{type}', [ProductController::class, 'getByUser']);
+
+
         });
 
         // Reviews (write operations)
@@ -68,24 +72,17 @@ Route::prefix('v1')->group(function () {
     // Product (public GET routes)
     Route::prefix('products')->group(function () {
         Route::get('/', [ProductController::class, 'index']);
-        Route::get('/regular', [ProductController::class, 'regular']);
-        Route::get('/food', [ProductController::class, 'food']);
-
-        Route::get('/user/my', [ProductController::class, 'myProducts']);
-
-        Route::get('/university/{id}', [ProductController::class, 'byUniversity']);
-        Route::get('/university/{id}/regular', [ProductController::class, 'regularByUniversity']);
-        Route::get('/university/{id}/food', [ProductController::class, 'foodByUniversity']);
-
-        Route::get('/country/{id}', [ProductController::class, 'byCountry']);
-        Route::get('/country/{id}/regular', [ProductController::class, 'regularByCountry']);
-        Route::get('/country/{id}/food', [ProductController::class, 'foodByCountry']);
-
-        Route::get('/category/{categoryId}', [ProductController::class, 'byCategory']);
-        Route::get('/category/{categoryId}/regular', [ProductController::class, 'regularByCategory']);
-        Route::get('/category/{categoryId}/food', [ProductController::class, 'foodByCategory']);
-
-        Route::get('/{id}', [ProductController::class, 'show']);
+        Route::get('/{id}', [ProductController::class, 'show']); 
+        Route::get('/store/{storeId}', [ProductController::class, 'getByStore']);
+        Route::get('/store/{storeId}/{type}', [ProductController::class, 'getByStore']); 
+        Route::get('/university/{universityId}', [ProductController::class, 'getByUniversity']);
+        Route::get('/university/{universityId}/{type}', [ProductController::class, 'getByUniversity']);
+        Route::get('/country/{country}', [ProductController::class, 'getByCountry']);
+        Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
+        Route::get('/country/{country}/{type}', [ProductController::class, 'byCountryWithType']);
+        Route::get('/state/{state}', [ProductController::class, 'getByState']);
+        Route::get('/state/{state}/{type}', [ProductController::class, 'byStateWithType']);
+        Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
     });
 
     // Reviews (public GET routes)

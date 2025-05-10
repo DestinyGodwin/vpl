@@ -25,7 +25,7 @@ class ProductResource extends JsonResource
             'images' => ProductImageResource::collection($this->images),
             'user' => [
                 'name' => $this->store->user->first_name,
-                'email' => $this->store->user->email,
+                'email' =>auth('sanctum')->user()?->id ? $this->store->user->email : null,
                 'phone' => auth('sanctum')->user()?->id ? $this->store->user->phone : null,
             ],
         ];
