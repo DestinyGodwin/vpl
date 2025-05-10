@@ -84,4 +84,9 @@ class AuthController extends Controller
         return response()->json(['profile updated successfully']);
 
     }
+    public function getProfile()
+{
+    $user = $this->authService->getProfile();
+    return new UserResource($user);
+}
 }
