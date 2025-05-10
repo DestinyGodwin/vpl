@@ -28,6 +28,7 @@ class UpdateProductRequestRequest extends FormRequest
             'images' => 'sometimes|array|min:1',
             'images.*' => 'required_with:images|image|mimes:jpeg,jpg,png,gif,webp,avif|max:2048',
         ];
+        
     }
 
     public function messages(): array

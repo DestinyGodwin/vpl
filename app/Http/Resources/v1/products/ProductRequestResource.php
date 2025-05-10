@@ -24,18 +24,14 @@ class ProductRequestResource extends JsonResource
                 'store_type' => $this->category->store_type,
             ],
             'user' => [
-                'name' => $this->user->first_name,
-    
+                'id' => $this->user->id,
+                'name' => $this->user->first_name . ' ' . $this->user->last_name,
             ],
-            'images' => $this->images->map(function ($image) {
-                return [
-                    'id' => $image->id,
-                    'path' => $image->path,
-                    'url' => asset('storage/' . $image->path),
-                ];
-            }),
+            'images' => $this->images->map(fn($image) => [
+                'id' => $image->id,
+                'url' => asset('storage/' . $image->path),
+            ]),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
-    }
     }
 }

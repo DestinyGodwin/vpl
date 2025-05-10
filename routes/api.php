@@ -31,7 +31,8 @@ Route::prefix('v1')->group(function () {
     // Authenticated routes
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/profile', [AuthController::class, 'updateProfile']);
+        Route::get('profile', [AuthController::class, 'getProfile']);
+        Route::post('profile/update', [AuthController::class, 'updateProfile']);
         Route::apiResource('universities', UniversityController::class)->only('store');
         // Store (write operations)
         Route::prefix('stores')->group(function () {
