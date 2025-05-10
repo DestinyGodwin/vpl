@@ -8,6 +8,7 @@ use App\Http\Controllers\v1\UniversityController;
 use App\Http\Controllers\v1\stores\StoreController;
 use App\Http\Controllers\v1\products\ReviewController;
 use App\Http\Controllers\v1\products\ProductController;
+use App\Http\Controllers\v1\products\ProductRequestController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -40,6 +41,10 @@ Route::prefix('v1')->group(function () {
             
 
         });
+        Route::prefix('product-requests')->group(function () {
+            Route::post('/', [ProductRequestController::class, 'store']);
+        });
+        
 
         // Product (write operations)
         Route::prefix('products')->group(function () {

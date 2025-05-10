@@ -25,6 +25,19 @@ class StoreProductRequestRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'category_id' => 'required|exists:categories,id',
+            'images' => 'required|array|min:1',
+            'images.*' => 'required|image|mimes:jpeg,jpg,png,gif,webp,avif|max:2048',
+        ];
+    }
+    
+    public function messages(): array
+    {
+        return [
+            'images.required' => 'You must upload at least one image.',
+            'images.array' => 'Images must be an array.',
+            'images.*.image' => 'Each file must be a valid image.',
+            'images.*.mimes' => 'Images must be jpeg, jpg, png, gif, webp or avif.',
+            'images.*.max' => 'Each image must not exceed 2MB.',
         ];
     }
 }

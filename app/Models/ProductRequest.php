@@ -21,4 +21,7 @@ class ProductRequest extends Model
     {
         return $this->belongsTo(Category::class);
     }
+    public function messages() {
+        return $this->hasMany(ProductRequestMessage::class);
+    }
 }
