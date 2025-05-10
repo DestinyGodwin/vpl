@@ -14,7 +14,7 @@ class ReviewController extends Controller
     
         public function store(StoreReviewRequest $request)
         {
-            $review = $reviewService->store($request);
+            $review = $this->reviewService->store($request);
             return new ReviewResource($review);
         }
     
