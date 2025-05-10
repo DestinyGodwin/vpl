@@ -9,6 +9,7 @@ use App\Http\Requests\v1\auth\LoginRequest;
 use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
 use App\Http\Requests\v1\auth\ResetPasswordRequest;
+use App\Http\Requests\v1\auth\UpdateProfileRequest;
 use App\Http\Requests\v1\auth\ForgotPasswordRequest;
 use App\Notifications\v1\auth\EmailVerifiedSuccessNotification;
 use App\Notifications\v1\auth\PasswordChangedSuccessNotification;
@@ -77,5 +78,10 @@ class AuthController extends Controller
         $user->notify(new PasswordChangedSuccessNotification());
 
         return response()->json(['message' => 'Password reset successful.']);
+    }
+    public function updateProile(UpdateProfileRequest $request){
+        $this->authService->updateProfile($request->validated());
+        return response()->json(['profile updated successfully']);
+
     }
 }
