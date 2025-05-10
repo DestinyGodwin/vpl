@@ -3,9 +3,10 @@
 namespace App\Notifications\v1\products;
 
 use Illuminate\Bus\Queueable;
+use App\Models\ProductRequest;
+use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
 class ProductRequestedNotification extends Notification implements ShouldQueue
 {
@@ -32,15 +33,17 @@ class ProductRequestedNotification extends Notification implements ShouldQueue
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable)
     {
-        return [
-            'product_request_id' => $this->productRequest->id,
-            'requested_by' => $this->productRequest->user->only(['id', 'first_name', 'last_name']),
-            'name' => $this->productRequest->name,
-            'description' => $this->productRequest->description,
-            'category' => $this->productRequest->category->name,
-        ];
+        return (new MailMessage)
+            ->subject('New Product Request')
+            ->greeting("Hello {$notifiable->first_name},")
+            ->line("A user has requested a product that matches your store type.")
+            ->line("Product: {$this->productRequest->name}")
+            ->line("Description: {$this->productRequest->description}")
+            ->action('View Requests', url('/product-requests'))
+            ->line('Thanks for using our platform!');
+    }
 
     /**
      * Get the array representation of the notification.
