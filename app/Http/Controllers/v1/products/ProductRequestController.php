@@ -32,5 +32,6 @@ class ProductRequestController extends Controller
 
     public function destroy($id)
     {
-      
+        return $this->service->destroy($id);
+    }
 }
