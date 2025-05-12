@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Services\v1\auth\RateLimitService;
+use Illuminate\Support\Facades\RateLimiter;
 use App\Notifications\v1\auth\EmailOtpNotification;
 use App\Notifications\v1\auth\PasswordResetOtpNotification;
 
@@ -15,12 +16,8 @@ class AuthService
      * Create a new class instance.
      */
 
-     protected RateLimitService $rateLimiter;
+ public function __construct(private RateLimitService $rateLimiter) {}
 
-public function __construct(RateLimitService $rateLimiter)
-{
-    $this->rateLimiter = $rateLimiter;
-}
     public function register(array $data) : string
     {
         if (isset($data['profile_picture'])) {
@@ -41,15 +38,22 @@ public function __construct(RateLimitService $rateLimiter)
     }
 
 
-  public function sendOtp(User $user, string $type = 'email_verification')
+public function sendOtp(User $user, string $type = 'email_verification')
 {
     $key = "otp:{$type}:" . $user->id;
+    $maxAttempts = 3;
+    $decaySeconds = 600;
 
-    if ($this->rateLimiter->tooManyAttempts($key, 3, 10)) {
-        abort(429, 'Too many OTP requests. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
+    $check = $this->rateLimiter->check($key, $maxAttempts);
+    if ($check) {
+        return response()->json([
+            'message' => $check['message'],
+            'retry_after_seconds' => RateLimiter::availableIn($key),
+            'remaining_attempts' => 0,
+        ], $check['status']);
     }
 
-    $this->rateLimiter->hit($key, 10);
+    $this->rateLimiter->increment($key, $decaySeconds);
 
     $otp = rand(100000, 999999);
     $user->update([
@@ -67,26 +71,43 @@ public function __construct(RateLimitService $rateLimiter)
     } catch (\Throwable $e) {
         Log::error("Failed to send {$type} OTP: " . $e->getMessage());
     }
+
+    return response()->json(['message' => 'OTP sent successfully.']);
 }
+
 
 
 public function verifyOtp(User $user, string $otp)
 {
     $key = 'otp_verify:' . $user->id;
+    $maxAttempts = 5;
+    $decaySeconds = 600;
 
-    if ($this->rateLimiter->tooManyAttempts($key, 5, 10)) {
-        abort(429, 'Too many incorrect OTP attempts. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
+    $check = $this->rateLimiter->check($key, $maxAttempts);
+    if ($check) {
+        return response()->json([
+            'message' => $check['message'],
+            'retry_after_seconds' => RateLimiter::availableIn($key),
+            'remaining_attempts' => 0,
+        ], $check['status']);
     }
 
     if (
         $user->otp_code !== $otp ||
         $user->otp_expires_at < now()
     ) {
-        $this->rateLimiter->hit($key, 10);
-        return false;
+        $this->rateLimiter->increment($key, $decaySeconds);
+        $attempts = RateLimiter::attempts($key);
+        $remainingAttempts = max($maxAttempts - $attempts, 0);
+
+        return response()->json([
+            'message' => 'Invalid or expired OTP.',
+            'remaining_attempts' => $remainingAttempts,
+            'retry_after_seconds' => RateLimiter::availableIn($key),
+        ], 401);
     }
 
-    $this->rateLimiter->clear($key);
+    $this->rateLimiter->reset($key);
 
     $user->update([
         'email_verified_at' => now(),
@@ -94,25 +115,57 @@ public function verifyOtp(User $user, string $otp)
         'otp_expires_at' => null,
     ]);
 
-    return true;
+    return response()->json(['message' => 'OTP verified successfully.']);
 }
+
 
 public function login(array $credentials)
 {
-    $key = 'login:' . request()->ip();
+    $email = $credentials['email'] ?? request()->ip();
+    $key = 'login:' . $email;
 
-    if ($this->rateLimiter->tooManyAttempts($key, 5, 1)) {
-        abort(429, 'Too many login attempts. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
+    // We'll track failed blocks using a shadow key
+    $blockKey = $key . ':blocks';
+
+    $blocks = RateLimiter::attempts($blockKey); // How many full blocks so far
+    $maxAttempts = max(1, 5 - $blocks);         // Start from 5, decrease with each block
+    $decaySeconds = 60 * ($blocks + 1);         // Increase delay with each block
+
+    // Check if currently locked
+    $check = $this->rateLimiter->check($key, $maxAttempts);
+    if ($check) {
+        return response()->json([
+            'message' => $check['message'],
+            'retry_after_seconds' => RateLimiter::availableIn($key),
+            'remaining_attempts' => 0,
+        ], $check['status']);
     }
 
+    // Failed login
     if (!Auth::attempt($credentials)) {
-        $this->rateLimiter->hit($key, 1);
-        return null;
+        $this->rateLimiter->increment($key, $decaySeconds);
+
+        $remainingAttempts = max($maxAttempts - RateLimiter::attempts($key), 0);
+
+        // If attempts used up, increment the block key
+        if ($remainingAttempts === 0) {
+            RateLimiter::hit($blockKey, 3600); // Each block lasts up to 1hr tracking
+        }
+
+        return response()->json([
+            'message' => 'Invalid credentials.',
+            'remaining_attempts' => $remainingAttempts,
+            'retry_after_seconds' => RateLimiter::availableIn($key),
+        ], 401);
     }
 
-    $this->rateLimiter->clear($key);
+    // Successful login
+    $this->rateLimiter->reset($key);
+    $this->rateLimiter->reset($blockKey);
+
     return Auth::user()->createToken('auth_token')->plainTextToken;
 }
+
 
 
     public function logout($user)

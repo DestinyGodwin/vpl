@@ -1,56 +1,48 @@
 <?php
-namespace App\Services;
+namespace App\Services\v1\auth;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RateLimitService
 {
-    protected int $baseAttempts = 3;
-    protected int $baseCooldownSeconds = 60;
-
-    public function tooManyAttempts(string $key): bool
+    /**
+     *
+     * @param string $key
+     * @param int $maxAttempts
+     * @return array|null
+     */
+    public function check(string $key, int $maxAttempts): ?array
     {
-        return Cache::has($this->getLockKey($key));
-    }
-
-    public function hit(string $key): array
-    {
-        $attemptKey = $this->getAttemptKey($key);
-        $lockKey = $this->getLockKey($key);
-
-        $attempts = Cache::increment($attemptKey, 1);
-        $blockCount = (int) floor($attempts / $this->baseAttempts);
-
-        if ($attempts % $this->baseAttempts === 0) {
-            $cooldown = $this->baseCooldownSeconds * ($blockCount + 1); // Increase per block
-            Cache::put($lockKey, now()->addSeconds($cooldown), $cooldown);
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            return [
+                'message' => "Too many attempts. Please try again in {$seconds} seconds.",
+                'status' => 429,
+            ];
         }
-
-        $remaining = max($this->baseAttempts - ($attempts % $this->baseAttempts), 0);
-        $retryAfter = Cache::get($lockKey)?->diffInSeconds(now());
-
-        return [
-            'locked' => Cache::has($lockKey),
-            'remaining_attempts' => $remaining,
-            'retry_after_seconds' => $retryAfter,
-        ];
+        return null;
     }
 
-    public function clear(string $key): void
+    /**
+     * Increment the rate limiter for a given key.
+     *
+     * @param string $key
+     * @param int $decaySeconds
+     * @return void
+     */
+    public function increment(string $key, int $decaySeconds = 60): void
     {
-        Cache::forget($this->getAttemptKey($key));
-        Cache::forget($this->getLockKey($key));
+        RateLimiter::hit($key, $decaySeconds);
     }
 
-    private function getAttemptKey(string $key): string
+    /**
+     * Clear the rate limiter for a given key.
+     *
+     * @param string $key
+     * @return void
+     */
+    public function reset(string $key): void
     {
-        return "ratelimit:attempts:$key";
-    }
-
-    private function getLockKey(string $key): string
-    {
-        return "ratelimit:lock:$key";
+        RateLimiter::clear($key);
     }
 }

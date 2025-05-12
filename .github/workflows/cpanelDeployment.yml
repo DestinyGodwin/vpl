@@ -1,0 +1,40 @@
+name: Publish website to Cpanel
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  FTP-Deploy-Action:
+    name: FTP Deploy Action
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout repository
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Step 2: Build assets
+      - name: Build assets
+        run: |
+          npm install
+          npm run build
+
+      # Step 3: Install PHP and Composer
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: 'composer'
+
+      # Step 4: Install PHP dependencies
+      - name: Install PHP Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      # Step 5: Deploy using FTP
+      - name: FTP Deploy Action
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.SERVER }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
