@@ -1,32 +1,56 @@
 <?php
-namespace App\Services\v1\auth;
-use Illuminate\Support\Facades\RateLimiter;
+namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class RateLimitService
 {
-    public function tooManyAttempts(string $key, int $maxAttempts = 5, int $decayMinutes = 1): bool
+    protected int $baseAttempts = 3;
+    protected int $baseCooldownSeconds = 60;
+
+    public function tooManyAttempts(string $key): bool
     {
-        return RateLimiter::tooManyAttempts($key, $maxAttempts);
+        return Cache::has($this->getLockKey($key));
     }
 
-    public function hit(string $key, int $decayMinutes = 1): void
+    public function hit(string $key): array
     {
-        RateLimiter::hit($key, $decayMinutes * 60);
+        $attemptKey = $this->getAttemptKey($key);
+        $lockKey = $this->getLockKey($key);
+
+        $attempts = Cache::increment($attemptKey, 1);
+        $blockCount = (int) floor($attempts / $this->baseAttempts);
+
+        if ($attempts % $this->baseAttempts === 0) {
+            $cooldown = $this->baseCooldownSeconds * ($blockCount + 1); // Increase per block
+            Cache::put($lockKey, now()->addSeconds($cooldown), $cooldown);
+        }
+
+        $remaining = max($this->baseAttempts - ($attempts % $this->baseAttempts), 0);
+        $retryAfter = Cache::get($lockKey)?->diffInSeconds(now());
+
+        return [
+            'locked' => Cache::has($lockKey),
+            'remaining_attempts' => $remaining,
+            'retry_after_seconds' => $retryAfter,
+        ];
     }
 
     public function clear(string $key): void
     {
-        RateLimiter::clear($key);
+        Cache::forget($this->getAttemptKey($key));
+        Cache::forget($this->getLockKey($key));
     }
 
-    public function remaining(string $key, int $maxAttempts): int
+    private function getAttemptKey(string $key): string
     {
-        return RateLimiter::remaining($key, $maxAttempts);
+        return "ratelimit:attempts:$key";
     }
 
-    public function availableIn(string $key): int
+    private function getLockKey(string $key): string
     {
-        return RateLimiter::availableIn($key);
+        return "ratelimit:lock:$key";
     }
 }
