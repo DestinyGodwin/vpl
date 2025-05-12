@@ -123,43 +123,36 @@ public function login(array $credentials)
 {
     $email = $credentials['email'] ?? request()->ip();
     $key = 'login:' . $email;
-
-    // We'll track failed blocks using a shadow key
     $blockKey = $key . ':blocks';
 
-    $blocks = RateLimiter::attempts($blockKey); // How many full blocks so far
-    $maxAttempts = max(1, 5 - $blocks);         // Start from 5, decrease with each block
-    $decaySeconds = 60 * ($blocks + 1);         // Increase delay with each block
+    $blocks = RateLimiter::attempts($blockKey);
+    $maxAttempts = 5;
+    $decaySeconds = 120 * ($blocks + 1); // 2 mins per block level
 
-    // Check if currently locked
     $check = $this->rateLimiter->check($key, $maxAttempts);
     if ($check) {
-        return response()->json([
+        return [
             'message' => $check['message'],
             'retry_after_seconds' => RateLimiter::availableIn($key),
             'remaining_attempts' => 0,
-        ], $check['status']);
+        ];
     }
 
-    // Failed login
     if (!Auth::attempt($credentials)) {
         $this->rateLimiter->increment($key, $decaySeconds);
 
         $remainingAttempts = max($maxAttempts - RateLimiter::attempts($key), 0);
-
-        // If attempts used up, increment the block key
         if ($remainingAttempts === 0) {
-            RateLimiter::hit($blockKey, 3600); // Each block lasts up to 1hr tracking
+            RateLimiter::hit($blockKey, 3600); // blockKey lasts 1 hour
         }
 
-        return response()->json([
+        return [
             'message' => 'Invalid credentials.',
             'remaining_attempts' => $remainingAttempts,
             'retry_after_seconds' => RateLimiter::availableIn($key),
-        ], 401);
+        ];
     }
 
-    // Successful login
     $this->rateLimiter->reset($key);
     $this->rateLimiter->reset($blockKey);
 

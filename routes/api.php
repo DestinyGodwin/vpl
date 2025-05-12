@@ -13,6 +13,8 @@ use App\Http\Controllers\v1\products\ProductRequestController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+Route::get('/', [ProductController::class, 'index']);
+
 
 Route::prefix('v1')->group(function () {
 

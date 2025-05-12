@@ -44,15 +44,17 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP resent.']);
     }
 
-    public function login(LoginRequest $request)
-    {
-        $token = $this->authService->login($request->validated());
-        if (!$token) {
-            return response()->json(['message' => 'Invalid credentials.'], 401);
-        }
+  public function login(LoginRequest $request)
+{
+    $result = $this->authService->login($request->validated());
 
-        return response()->json(['token' => $token]);
+    if (is_array($result)) {
+        return response()->json($result, 401);
     }
+
+    return response()->json(['token' => $result]);
+}
+
 
     public function logout(Request $request)
     {
