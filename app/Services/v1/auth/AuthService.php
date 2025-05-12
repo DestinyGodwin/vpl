@@ -4,15 +4,23 @@ namespace App\Services\v1\auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Services\v1\auth\RateLimitService;
 use App\Notifications\v1\auth\EmailOtpNotification;
 use App\Notifications\v1\auth\PasswordResetOtpNotification;
-use Illuminate\Support\Facades\Storage;
 
 class AuthService
 {
     /**
      * Create a new class instance.
      */
+
+     protected RateLimitService $rateLimiter;
+
+public function __construct(RateLimitService $rateLimiter)
+{
+    $this->rateLimiter = $rateLimiter;
+}
     public function register(array $data) : string
     {
         if (isset($data['profile_picture'])) {
@@ -33,57 +41,79 @@ class AuthService
     }
 
 
-    public function sendOtp(User $user, string $type = 'email_verification')
-    {
-        $otp = rand(100000, 999999);
-        $user->update([
-            'otp_code' => $otp,
-            'otp_expires_at' => now()->addMinutes(10)
-        ]);
-    
-        try {
-            if ($type === 'email_verification') {
-                $user->notify(new EmailOtpNotification($otp));
-            } elseif ($type === 'password_reset') {
-                $user->notify(new PasswordResetOtpNotification($otp));
-            }
-    
-            Log::info("OTP sent for {$type} to {$user->email}");
-        } catch (\Throwable $e) {
-            Log::error("Failed to send {$type} OTP: " . $e->getMessage());
-        }
+  public function sendOtp(User $user, string $type = 'email_verification')
+{
+    $key = "otp:{$type}:" . $user->id;
+
+    if ($this->rateLimiter->tooManyAttempts($key, 3, 10)) {
+        abort(429, 'Too many OTP requests. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
     }
 
-    public function verifyOtp(User $user, string $otp)
-    {
-        if (
-            $user->otp_code !== $otp ||
-            $user->otp_expires_at < now()
-        ) {
-            return false;
+    $this->rateLimiter->hit($key, 10);
+
+    $otp = rand(100000, 999999);
+    $user->update([
+        'otp_code' => $otp,
+        'otp_expires_at' => now()->addMinutes(10)
+    ]);
+
+    try {
+        if ($type === 'email_verification') {
+            $user->notify(new EmailOtpNotification($otp));
+        } elseif ($type === 'password_reset') {
+            $user->notify(new PasswordResetOtpNotification($otp));
         }
+        Log::info("OTP sent for {$type} to {$user->email}");
+    } catch (\Throwable $e) {
+        Log::error("Failed to send {$type} OTP: " . $e->getMessage());
+    }
+}
 
-        // $user->update([
-        //     'email_verified_at' => now(),
-        //     'otp_code' => null,
-        //     'otp_expires_at' => null,
-        // ]);
-        $user->email_verified_at = now();
-        $user->otp_code = null;
-        $user->otp_expires_at = null;
-        $user->save();
 
-        return true;
+public function verifyOtp(User $user, string $otp)
+{
+    $key = 'otp_verify:' . $user->id;
+
+    if ($this->rateLimiter->tooManyAttempts($key, 5, 10)) {
+        abort(429, 'Too many incorrect OTP attempts. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
     }
 
-    public function login(array $credentials)
-    {
-        if (!Auth::attempt($credentials)) {
-            return null;
-        }
-
-        return Auth::user()->createToken('auth_token')->plainTextToken;
+    if (
+        $user->otp_code !== $otp ||
+        $user->otp_expires_at < now()
+    ) {
+        $this->rateLimiter->hit($key, 10);
+        return false;
     }
+
+    $this->rateLimiter->clear($key);
+
+    $user->update([
+        'email_verified_at' => now(),
+        'otp_code' => null,
+        'otp_expires_at' => null,
+    ]);
+
+    return true;
+}
+
+public function login(array $credentials)
+{
+    $key = 'login:' . request()->ip();
+
+    if ($this->rateLimiter->tooManyAttempts($key, 5, 1)) {
+        abort(429, 'Too many login attempts. Try again in ' . $this->rateLimiter->availableIn($key) . ' seconds.');
+    }
+
+    if (!Auth::attempt($credentials)) {
+        $this->rateLimiter->hit($key, 1);
+        return null;
+    }
+
+    $this->rateLimiter->clear($key);
+    return Auth::user()->createToken('auth_token')->plainTextToken;
+}
+
 
     public function logout($user)
     {
