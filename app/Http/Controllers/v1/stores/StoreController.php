@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\stores;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\stores\StoreService;
 use App\Http\Requests\v1\stores\StoreRequest;
@@ -10,18 +11,13 @@ use App\Http\Requests\v1\stores\UpdateStoreRequest;
 
 class StoreController extends Controller
 {
-
     public function __construct(protected StoreService $storeService) {}
 
-  
-
-    public function myStores()
+    public function myStores(Request $request)
     {
-        return StoreResource::collection($this->storeService->getUserStores());
+        $perPage = $request->query('per_page');
+        return StoreResource::collection($this->storeService->getUserStores($perPage));
     }
-
-   
-
 
     public function store(StoreRequest $request)
     {
@@ -29,73 +25,75 @@ class StoreController extends Controller
         return new StoreResource($store);
     }
 
-  
+    public function update(UpdateStoreRequest $request, $id)
+    {
+        $store = $this->storeService->updateByOwner($id, $request);
+        if (!$store) {
+            return response()->json(['message' => 'You do not own this store or it does not exist.'], 404);
+        }
 
-public function update(UpdateStoreRequest $request, $id)
-{
-    $store = $this->storeService->updateByOwner($id, $request);
-    if (!$store) {
-        return response()->json(['message' => 'You do not own this store or it does not exist.'], 404);
+        return new StoreResource($store);
     }
 
-    return new StoreResource($store);
-}
+    public function destroy($id)
+    {
+        $deleted = $this->storeService->deleteByOwner($id);
+        if (!$deleted) {
+            return response()->json(['message' => 'Store not found or you are not authorized to delete it.'], 404);
+        }
 
-public function destroy($id)
-{
-    $deleted = $this->storeService->deleteByOwner($id);
-    if (!$deleted) {
-        return response()->json(['message' => 'Store not found or you are not authorized to delete it.'], 404);
+        return response()->json(['message' => 'Store deleted successfully.']);
     }
 
-    return response()->json(['message' => 'Store deleted successfully.']);
-}
-public function index()
-{
-    return StoreResource::collection($this->storeService->getAll());
-}
-
-public function byType(string $type)
-{
-    $stores = $this->storeService->getByType($type);
-
-    if ($stores->isEmpty()) {
-        return response()->json(['message' => 'No stores found for the given type.'], 404);
+    public function index(Request $request)
+    {
+        $perPage = $request->query('per_page');
+        return StoreResource::collection($this->storeService->getAll($perPage));
     }
 
-    return StoreResource::collection($stores);
-}
+    public function byType(Request $request, string $type)
+    {
+        $perPage = $request->query('per_page');
+        $stores = $this->storeService->getByType($type, $perPage);
 
-public function byUniversity(string $universityId, string $type = null)
-{
-    $stores = $this->storeService->getByUniversity($universityId, $type);
+        if ($stores->isEmpty()) {
+            return response()->json(['message' => 'No stores found for the given type.'], 404);
+        }
 
-    if ($stores->isEmpty()) {
-        return response()->json(['message' => 'No stores found for the given university or type.'], 404);
+        return StoreResource::collection($stores);
     }
 
-    return StoreResource::collection($stores);
-}
+    public function byUniversity(Request $request, string $universityId, string $type = null)
+    {
+        $perPage = $request->query('per_page');
+        $stores = $this->storeService->getByUniversity($universityId, $type, $perPage);
 
-public function byCountry(string $countryId, string $type = null)
-{
-    $stores = $this->storeService->getByCountry($countryId, $type);
+        if ($stores->isEmpty()) {
+            return response()->json(['message' => 'No stores found for the given university or type.'], 404);
+        }
 
-    if ($stores->isEmpty()) {
-        return response()->json(['message' => 'No stores found for the given country or type.'], 404);
+        return StoreResource::collection($stores);
     }
 
-    return StoreResource::collection($stores);
-}
+    public function byCountry(Request $request, string $countryId, string $type = null)
+    {
+        $perPage = $request->query('per_page');
+        $stores = $this->storeService->getByCountry($countryId, $type, $perPage);
 
-public function show($id)
-{
-    $store = $this->storeService->findById($id);
-    if (!$store) {
-        return response()->json(['message' => 'Store not found.'], 404);
+        if ($stores->isEmpty()) {
+            return response()->json(['message' => 'No stores found for the given country or type.'], 404);
+        }
+
+        return StoreResource::collection($stores);
     }
 
-    return new StoreResource($store);
-}
+    public function show($id)
+    {
+        $store = $this->storeService->findById($id);
+        if (!$store) {
+            return response()->json(['message' => 'Store not found.'], 404);
+        }
 
+        return new StoreResource($store);
+    }
 }
