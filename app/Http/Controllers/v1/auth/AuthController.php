@@ -44,16 +44,23 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP resent.']);
     }
 
-  public function login(LoginRequest $request)
+public function login(LoginRequest $request)
 {
     $result = $this->authService->login($request->validated());
 
-    if (is_array($result)) {
-        return response()->json($result, 401);
+    if (!$result['success']) {
+        return response()->json([
+            'message' => $result['message'],
+            'retry_after_seconds' => $result['retry_after_seconds'] ?? null,
+            'remaining_attempts' => $result['remaining_attempts'] ?? null,
+        ], $result['status']);
     }
 
-    return response()->json(['token' => $result]);
+    return response()->json([
+        'token' => $result['token']
+    ], 200);
 }
+
 
 
     public function logout(Request $request)
