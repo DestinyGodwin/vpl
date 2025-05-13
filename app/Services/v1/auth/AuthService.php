@@ -1,12 +1,17 @@
 <?php
 
 namespace App\Services\v1\auth;
+
+use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Services\v1\auth\RateLimitService;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use App\Notifications\v1\auth\EmailOtpNotification;
 use App\Notifications\v1\auth\PasswordResetOtpNotification;
 
@@ -36,8 +41,6 @@ class AuthService
 
         return $user->email;
     }
-
-
 public function sendOtp(User $user, string $type = 'email_verification')
 {
     $key = "otp:{$type}:" . $user->id;
@@ -74,9 +77,6 @@ public function sendOtp(User $user, string $type = 'email_verification')
 
     return response()->json(['message' => 'OTP sent successfully.']);
 }
-
-
-
 public function verifyOtp(User $user, string $otp)
 {
     $key = 'otp_verify:' . $user->id;
@@ -99,7 +99,6 @@ public function verifyOtp(User $user, string $otp)
         $this->rateLimiter->increment($key, $decaySeconds);
         $attempts = RateLimiter::attempts($key);
         $remainingAttempts = max($maxAttempts - $attempts, 0);
-
         return response()->json([
             'message' => 'Invalid or expired OTP.',
             'remaining_attempts' => $remainingAttempts,
@@ -117,73 +116,129 @@ public function verifyOtp(User $user, string $otp)
 
     return response()->json(['message' => 'OTP verified successfully.']);
 }
-public function login(array $credentials)
-{
-    $email = $credentials['email'] ?? request()->ip();
-
-    $attemptKey = "login:attempts:{$email}";
-    $lockoutKey = "login:lockout:{$email}";
-    $escalationKey = "login:escalation:{$email}";
-    $maxAttempts = 5;
-
-    // Step 1: If locked out, apply wait
-    if (RateLimiter::tooManyAttempts($lockoutKey, 1)) {
-        $retryAfter = RateLimiter::availableIn($lockoutKey);
-
+ 
+    
+    /**
+     * Initial waiting time in minutes after exceeding max attempts
+     */const MAX_ATTEMPTS = 5;
+    
+    /**
+     * Initial timeout in minutes
+     */
+    const INITIAL_TIMEOUT = 1;
+    
+    /**
+     * Cache key prefix for attempts
+     */
+    const ATTEMPTS_KEY_PREFIX = 'login_attempts:';
+    
+    /**
+     * Cache key prefix for lockout time
+     */
+    const LOCKOUT_KEY_PREFIX = 'login_lockout:';
+    
+    /**
+     * Handle user login with exponential backoff rate limiting
+     *
+     * @param array $credentials
+     * @param string $ipAddress
+     * @return array
+     * @throws ValidationException
+     */
+    public function login(array $credentials, string $ipAddress): array
+    {
+        $email = $credentials['email'];
+        $key = $this->getKey($email, $ipAddress);
+        
+        $this->checkLockout($key);
+        if (!Auth::attempt($credentials)) {
+                        $this->handleFailedAttempt($key);
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+        $this->clearRateLimiting($key);
+        $user = Auth::user();
+        
+        // Revoke any existing tokens for this user
+        $user->tokens()->delete();
+        
+        // Create new token
+        $token = $user->createToken('auth_token')->plainTextToken;
+        
         return [
-            'success' => false,
-            'message' => 'Too many login attempts. Try again later.',
-            'retry_after_seconds' => $retryAfter,
-            'remaining_attempts' => 0,
-            'status' => 429
+            'user' => $user->email,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
         ];
     }
-
-    // Step 2: If failed too many times, escalate and lock
-    $attempts = RateLimiter::attempts($attemptKey);
-    if ($attempts >= $maxAttempts) {
-        $failCount = RateLimiter::attempts($escalationKey);
-        $cooldown = 60 * pow(2, $failCount); // 60, 120, 240, ...
-
-        // Set lockout with escalating cooldown
-        RateLimiter::hit($lockoutKey, $cooldown);
-
-        // Increase escalation count
-        RateLimiter::hit($escalationKey, 3600); // Keep escalation count for 1 hour
-
-        return [
-            'success' => false,
-            'message' => "Account locked due to too many attempts. Try again in {$cooldown} seconds.",
-            'retry_after_seconds' => $cooldown,
-            'remaining_attempts' => 0,
-            'status' => 429
-        ];
+    
+    /**
+     * Check if the user is currently locked out
+     *
+     * @param string $key
+     * @throws ValidationException
+     */
+    private function checkLockout(string $key): void
+    {
+        $lockoutExpiration = Cache::get(self::LOCKOUT_KEY_PREFIX . $key);
+        
+        if ($lockoutExpiration && now()->lt($lockoutExpiration)) {
+            $seconds = Carbon::now()->diffInSeconds($lockoutExpiration);
+            
+            throw ValidationException::withMessages([
+                'email' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ]);
+        }
     }
-
-    // Step 3: If credentials are wrong
-    if (!Auth::attempt($credentials)) {
-        RateLimiter::hit($attemptKey, 600); // Each attempt lives for 10 mins
-        $remaining = max($maxAttempts - ($attempts + 1), 0);
-
-        return [
-            'success' => false,
-            'message' => 'Invalid credentials.',
-            'remaining_attempts' => $remaining,
-            'retry_after_seconds' => null,
-            'status' => 401
-        ];
+    
+    /**
+     * Handle a failed login attempt with exponential backoff
+     *
+     * @param string $key
+     * @return void
+     */
+    private function handleFailedAttempt(string $key): void
+    {
+        $attemptsKey = self::ATTEMPTS_KEY_PREFIX . $key;
+        $lockoutKey = self::LOCKOUT_KEY_PREFIX . $key;
+        $attempts = Cache::get($attemptsKey, 0);
+        $attempts++;
+        Cache::put($attemptsKey, $attempts, now()->addDay());        
+        if ($attempts > self::MAX_ATTEMPTS) {
+            $exceededCount = $attempts - self::MAX_ATTEMPTS;
+            $timeoutMinutes = self::INITIAL_TIMEOUT * pow(2, $exceededCount - 1);
+            $lockoutExpiration = now()->addMinutes($timeoutMinutes);
+            Cache::put($lockoutKey, $lockoutExpiration, $lockoutExpiration);
+        }
     }
-
-    RateLimiter::clear($attemptKey);
-    RateLimiter::clear($lockoutKey);
-    RateLimiter::clear($escalationKey);
-
-    return [
-        'success' => true,
-        'token' => Auth::user()->createToken('auth_token')->plainTextToken
-    ];
-}
-
+    
+    /**
+     * Clear all rate limiting data on successful login
+     *
+     * @param string $key
+     * @return void
+     */
+    private function clearRateLimiting(string $key): void
+    {
+        Cache::forget(self::ATTEMPTS_KEY_PREFIX . $key);
+        Cache::forget(self::LOCKOUT_KEY_PREFIX . $key);
+    }
+    
+    /**
+     * Get the unique key for rate limiting
+     *
+     * @param string $email
+     * @param string $ipAddress
+     * @return string
+     */
+    private function getKey(string $email, string $ipAddress): string
+    {
+        return Str::transliterate(Str::lower($email) . '|' . $ipAddress);
+    }
 
     public function logout($user)
     {

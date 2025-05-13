@@ -3,6 +3,7 @@ namespace App\Http\Controllers\v1\auth;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AuthService;
 use App\Http\Resources\v1\UserResource;
@@ -44,22 +45,24 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP resent.']);
     }
 
-public function login(LoginRequest $request)
-{
-    $result = $this->authService->login($request->validated());
-
-    if (!$result['success']) {
+     public function login(LoginRequest $request): JsonResponse
+    {
+        // Request is already validated by LoginRequest
+        
+        // Pass only necessary data to service layer
+        $credentials = $request->only('email', 'password');
+        $ipAddress = $request->ip();
+        
+        // Call service to handle business logic
+        $result = $this->authService->login($credentials, $ipAddress);
+        
+        // Return response
         return response()->json([
-            'message' => $result['message'],
-            'retry_after_seconds' => $result['retry_after_seconds'] ?? null,
-            'remaining_attempts' => $result['remaining_attempts'] ?? null,
-        ], $result['status']);
+            'status' => 'success',
+            'message' => 'User logged in successfully',
+            'data' => $result
+        ]);
     }
-
-    return response()->json([
-        'token' => $result['token']
-    ], 200);
-}
 
 
 
