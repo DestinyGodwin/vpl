@@ -50,7 +50,7 @@ class MigrateOldDataSeeder extends Seeder
                     'name' => $oldUni->uni_name,
                     'address' => '', // Default empty as no address in old schema
                     'state' => '', // Default empty as no state in old schema
-                    'country' => '', // Default empty as no country in old schema
+                    'country' => 'Nigeria', 
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
