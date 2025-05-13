@@ -105,13 +105,14 @@ class StoreService
     public function getUserStores($perPage = null)
 {
     $query = Auth::user()->stores()->with('university');
-    return $perPage ? $query->paginate($perPage) : $query->get();
+    return $query->paginate($perPage ?? 50);
 }
 
-public function getAll($perPage = 50)
+
+public function getAll($perPage = null)
 {
     $query = Store::with('university', 'user')->latest();
-    return $perPage ? $query->paginate($perPage) : $query->get();
+    return $query->paginate($perPage ?? 50);
 }
 
 public function getByType(string $type, $perPage = 50)
@@ -122,7 +123,7 @@ public function getByType(string $type, $perPage = 50)
     }
 
     $query = Store::where('type', $type)->with('university', 'user')->latest();
-    return $perPage ? $query->paginate($perPage) : $query->get();
+    return $query->paginate($perPage ?? 50);
 }
 
 public function getByUniversity($universityId, $type = null, $perPage = 50)
@@ -138,7 +139,7 @@ public function getByUniversity($universityId, $type = null, $perPage = 50)
                   ->where('university_id', $universityId)
                   ->with('user');
 
-    return $perPage ? $query->paginate($perPage) : $query->get();
+    return $query->paginate($perPage ?? 50);
 }
 
 public function getByCountry($countryId, $type = null, $perPage = 50)
@@ -154,7 +155,7 @@ public function getByCountry($countryId, $type = null, $perPage = 50)
                   ->when($type, fn($q) => $q->where('type', $type))
                   ->with('user', 'university');
 
-    return $perPage ? $query->paginate($perPage) : $query->get();
+    return $query->paginate($perPage ?? 50);
 }
 
 }
