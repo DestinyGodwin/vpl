@@ -108,13 +108,13 @@ class StoreService
     return $perPage ? $query->paginate($perPage) : $query->get();
 }
 
-public function getAll($perPage = null)
+public function getAll($perPage = 50)
 {
     $query = Store::with('university', 'user')->latest();
     return $perPage ? $query->paginate($perPage) : $query->get();
 }
 
-public function getByType(string $type, $perPage = null)
+public function getByType(string $type, $perPage = 50)
 {
     $allowedTypes = ['regular', 'food'];
     if (!in_array($type, $allowedTypes)) {
@@ -125,7 +125,7 @@ public function getByType(string $type, $perPage = null)
     return $perPage ? $query->paginate($perPage) : $query->get();
 }
 
-public function getByUniversity($universityId, $type = null, $perPage = null)
+public function getByUniversity($universityId, $type = null, $perPage = 50)
 {
     $allowedTypes = ['regular', 'food'];
     $isValidType = $type === null || in_array($type, $allowedTypes);
@@ -141,7 +141,7 @@ public function getByUniversity($universityId, $type = null, $perPage = null)
     return $perPage ? $query->paginate($perPage) : $query->get();
 }
 
-public function getByCountry($countryId, $type = null, $perPage = null)
+public function getByCountry($countryId, $type = null, $perPage = 50)
 {
     $allowedTypes = ['regular', 'food'];
     $isValidType = $type === null || in_array($type, $allowedTypes);

@@ -117,53 +117,52 @@ public function verifyOtp(User $user, string $otp)
 
     return response()->json(['message' => 'OTP verified successfully.']);
 }
-
-
 public function login(array $credentials)
 {
     $email = $credentials['email'] ?? request()->ip();
-    $attemptKey = "login:attempts:{$email}";
-    $blockKey = "login:blocked:{$email}";
 
+    $attemptKey = "login:attempts:{$email}";
+    $lockoutKey = "login:lockout:{$email}";
+    $escalationKey = "login:escalation:{$email}";
     $maxAttempts = 5;
 
-    // User is locked out
-    if (RateLimiter::tooManyAttempts($blockKey, 1)) {
-        $retryAfter = RateLimiter::availableIn($blockKey);
+    // Step 1: If locked out, apply wait
+    if (RateLimiter::tooManyAttempts($lockoutKey, 1)) {
+        $retryAfter = RateLimiter::availableIn($lockoutKey);
+
         return [
             'success' => false,
-            'message' => 'Too many attempts. Please wait before retrying.',
+            'message' => 'Too many login attempts. Try again later.',
             'retry_after_seconds' => $retryAfter,
             'remaining_attempts' => 0,
             'status' => 429
         ];
     }
 
+    // Step 2: If failed too many times, escalate and lock
     $attempts = RateLimiter::attempts($attemptKey);
-
-    // If max attempts exceeded before, escalate timeout
     if ($attempts >= $maxAttempts) {
-        // Get number of past lockouts
-        $blockCount = RateLimiter::attempts($blockKey);
-        
-        // Escalating backoff: 60s, 120s, 240s, etc
-        $waitTime = 60 * pow(2, $blockCount);
+        $failCount = RateLimiter::attempts($escalationKey);
+        $cooldown = 60 * pow(2, $failCount); // 60, 120, 240, ...
 
-        // Register this new lockout
-        RateLimiter::hit($blockKey, $waitTime);
+        // Set lockout with escalating cooldown
+        RateLimiter::hit($lockoutKey, $cooldown);
+
+        // Increase escalation count
+        RateLimiter::hit($escalationKey, 3600); // Keep escalation count for 1 hour
 
         return [
             'success' => false,
-            'message' => "Too many login attempts. Try again in {$waitTime} seconds.",
-            'retry_after_seconds' => $waitTime,
+            'message' => "Account locked due to too many attempts. Try again in {$cooldown} seconds.",
+            'retry_after_seconds' => $cooldown,
             'remaining_attempts' => 0,
             'status' => 429
         ];
     }
 
-    // Invalid login attempt
+    // Step 3: If credentials are wrong
     if (!Auth::attempt($credentials)) {
-        RateLimiter::hit($attemptKey, 600); // Counted for 10 mins
+        RateLimiter::hit($attemptKey, 600); // Each attempt lives for 10 mins
         $remaining = max($maxAttempts - ($attempts + 1), 0);
 
         return [
@@ -175,9 +174,9 @@ public function login(array $credentials)
         ];
     }
 
-    // ✅ Success
     RateLimiter::clear($attemptKey);
-    RateLimiter::clear($blockKey);
+    RateLimiter::clear($lockoutKey);
+    RateLimiter::clear($escalationKey);
 
     return [
         'success' => true,

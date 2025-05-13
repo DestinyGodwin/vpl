@@ -102,4 +102,25 @@ class ProductController extends Controller
             $this->productService->getByStoreType($type, $request->query('per_page'))
         );
     }
+    public function search(Request $request)
+{
+    $filters = $request->only([
+        'category_id',
+        'min_price',
+        'max_price',
+        'store_id',
+        'store_type',
+        'university_id',
+        'state',
+        'country',
+        'keyword'
+    ]);
+
+    $perPage = $request->query('per_page', 50);
+
+    return ProductResource::collection(
+        $this->productService->search($filters, $perPage)
+    );
+}
+
 }
