@@ -121,7 +121,8 @@ class ProductService
             ->with('category', 'images', 'store.user')
             ->latest()->paginate($perPage);
     }
-    public function search(array $filters, int $perPage = 50)
+    
+public function search(array $filters, int $perPage = 50)
 {
     return Product::query()
         ->when($filters['category_id'] ?? null, fn($q, $categoryId) => 
@@ -159,6 +160,10 @@ class ProductService
         ->latest()
         ->paginate($perPage);
 }
+
+
+
+
 
 }
 
