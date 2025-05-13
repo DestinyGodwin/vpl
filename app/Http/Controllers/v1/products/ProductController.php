@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1\products;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\products\ProductService;
 use App\Http\Requests\v1\products\ProductRequest;
@@ -12,74 +13,93 @@ class ProductController extends Controller
 {
     public function __construct(protected ProductService $productService) {}
 
-    public function index() { return ProductResource::collection($this->productService->getAll()); }
+    public function index(Request $request)
+    {
+        return ProductResource::collection($this->productService->getAll($request->query('per_page')));
+    }
 
-   
-    
-    public function store(ProductRequest $request) { return new ProductResource($this->productService->create($request)); }
+    public function store(ProductRequest $request)
+    {
+        return new ProductResource($this->productService->create($request));
+    }
 
-    public function show($id) { return new ProductResource($this->productService->findById($id)); }
+    public function show($id)
+    {
+        return new ProductResource($this->productService->findById($id));
+    }
 
     public function update(UpdateProductRequest $request, $id)
     {
         $product = $this->productService->update($id, $request);
         return new ProductResource($product);
     }
+
     public function destroy($id)
     {
         $this->productService->delete($id);
         return response()->json(['message' => 'Product deleted successfully.']);
     }
-    public function getByUser($type = null)
-{
-    return ProductResource::collection(
-        $this->productService->getByUser($type)
-    );
-}
 
-public function getByStore($storeId, $type = null)
-{
-    return ProductResource::collection(
-        $this->productService->getByStore($storeId, $type)
-    );
-}
+    public function getByUser(Request $request, $type = null)
+    {
+        return ProductResource::collection(
+            $this->productService->getByUser($type, $request->query('per_page'))
+        );
+    }
 
-public function getByUniversity($universityId, $type = null)
-{
-    return ProductResource::collection(
-        $this->productService->getByUniversity($universityId, $type)
-    );
-}
+    public function getByStore(Request $request, $storeId, $type = null)
+    {
+        return ProductResource::collection(
+            $this->productService->getByStore($storeId, $type, $request->query('per_page'))
+        );
+    }
 
-public function getByCountry(string $country)
-{
-    return ProductResource::collection(
-        $$this->productService->getByCountry($country));
-}
-public function byCountryWithType(string $country, string $type)
-{
-    return ProductResource::collection($this->productService->getByCountry($country, $type));
-}
-public function getByState($countryId, $type = null)
-{
-    return ProductResource::collection(
-        $this->productService->getByCountry($countryId, $type)
-    );
-}
-public function byStateWithType(string $state, string $type)
-{
-    return ProductResource::collection($this->productService->getByState($state, $type));
-}
+    public function getByUniversity(Request $request, $universityId, $type = null)
+    {
+        return ProductResource::collection(
+            $this->productService->getByUniversity($universityId, $type, $request->query('per_page'))
+        );
+    }
 
-public function getByCategory($categoryId, $type = null)
-{
-    return ProductResource::collection(
-        $this->productService->getByCategory($categoryId, $type)
-    );
-}
-public function byStoreType(string $type)
-{
-    return ProductResource::collection($this->productService->getByStoreType($type));
-}
+    public function getByCountry(Request $request, string $country)
+    {
+        return ProductResource::collection(
+            $this->productService->getByCountry($country, null, $request->query('per_page'))
+        );
+    }
 
+    public function byCountryWithType(Request $request, string $country, string $type)
+    {
+        return ProductResource::collection(
+            $this->productService->getByCountry($country, $type, $request->query('per_page'))
+        );
+    }
+
+    public function getByState(Request $request, $state, $type = null)
+    {
+        return ProductResource::collection(
+            $this->productService->getByState($state, $type, $request->query('per_page'))
+        );
+    }
+
+    public function byStateWithType(Request $request, string $state, string $type)
+    {
+        return ProductResource::collection(
+            $this->productService->getByState($state, $type, $request->query('per_page'))
+        );
+    }
+
+    public function getByCategory(Request $request, $categoryId)
+    {
+        return ProductResource::collection(
+            $this->productService->getByCategory($categoryId, $request->query('per_page'))
+        );
+    }
+
+    public function byStoreType(Request $request, string $type)
+    {
+        return ProductResource::collection(
+            $this->productService->getByStoreType($type, $request->query('per_page'))
+        );
+    }
 }
