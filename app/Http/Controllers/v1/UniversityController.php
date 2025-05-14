@@ -4,32 +4,39 @@ namespace App\Http\Controllers\v1;
 
 use App\Models\University;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\v1\UniversityResource;
 use App\Http\Requests\v1\university\StoreUniversityRequest;
 
 class UniversityController extends Controller
 {
     public function index()
     {
-        return response()->json(University::all());
+        return UniversityResource::collection(University::all());
     }
 
     public function store(StoreUniversityRequest $request)
     {
         $university = University::create($request->validated());
 
-        return response()->json(['message' => 'University created.', 'university' => $university]);
+        return response()->json([
+            'message'    => 'University created.',
+            'university' => new UniversityResource($university),
+        ]);
     }
 
     public function show(University $university)
     {
-        return response()->json($university);
+        return new UniversityResource($university);
     }
 
     public function update(StoreUniversityRequest $request, University $university)
     {
         $university->update($request->validated());
 
-        return response()->json(['message' => 'University updated.', 'university' => $university]);
+        return response()->json([
+            'message'    => 'University updated.',
+            'university' => new UniversityResource($university),
+        ]);
     }
 
     public function destroy(University $university)
