@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\v1\CategoryController;
+use App\Http\Controllers\v1\WishlistController;
 use App\Http\Controllers\v1\auth\AuthController;
 use App\Http\Controllers\v1\UniversityController;
 use App\Http\Controllers\v1\stores\StoreController;
@@ -36,6 +37,8 @@ Route::prefix('v1')->group(function () {
         Route::get('profile', [AuthController::class, 'getProfile']);
         Route::post('profile/update', [AuthController::class, 'updateProfile']);
         Route::apiResource('universities', UniversityController::class)->only('store');
+            Route::apiResource('wishlist', [WishlistController::class]);
+
         // Store (write operations)
         Route::prefix('stores')->group(function () {
             Route::post('/', [StoreController::class, 'store']);
