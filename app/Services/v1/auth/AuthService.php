@@ -168,6 +168,7 @@ public function verifyOtp(User $user, string $otp)
         
         return [
             'user' => $user->email,
+            'university' => $user->university->name,
             'access_token' => $token,
             'token_type' => 'Bearer',
         ];
