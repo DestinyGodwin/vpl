@@ -37,7 +37,10 @@ Route::prefix('v1')->group(function () {
         Route::get('profile', [AuthController::class, 'getProfile']);
         Route::post('profile/update', [AuthController::class, 'updateProfile']);
         Route::apiResource('universities', UniversityController::class)->only('store');
-            Route::apiResource('wishlist', [WishlistController::class]);
+         Route::get('wishlist', [WishlistController::class, 'index']);
+    Route::post('wishlist', [WishlistController::class, 'store']);
+    Route::delete('wishlist/{productId}', [WishlistController::class, 'destroy']);
+    Route::get('wishlist/{productId}', [WishlistController::class, 'show']);
 
         // Store (write operations)
         Route::prefix('stores')->group(function () {
