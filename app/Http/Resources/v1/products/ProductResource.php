@@ -28,6 +28,9 @@ class ProductResource extends JsonResource
                 'email' =>auth('sanctum')->user()?->id ? $this->store->user->email : null,
                 'phone' => auth('sanctum')->user()?->id ? $this->store->user->phone : null,
             ],
+            'average_rating' => isset($this->reviews)
+    ? round($this->reviews->avg('rating'), 1)
+    : round($this->reviews()->avg('rating'), 1),
         ];
     }
 }
