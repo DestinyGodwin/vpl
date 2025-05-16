@@ -13,11 +13,15 @@ class ProductController extends Controller
 {
     public function __construct(protected ProductService $productService) {}
 
-    public function index(Request $request)
-    {
-        return ProductResource::collection($this->productService->getAll($request->query('per_page')));
-    }
-
+    // public function index(Request $request)
+    // {
+    //     return ProductResource::collection($this->productService->getAll($request->query('per_page')));
+    // }
+public function index(Request $request)
+{
+    $perPage = (int) $request->query('per_page', 50);
+    return ProductResource::collection($this->productService->getAll($perPage));
+}
     public function store(ProductRequest $request)
     {
         return new ProductResource($this->productService->create($request));
