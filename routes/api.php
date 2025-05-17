@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\v1\CategoryController;
 use App\Http\Controllers\v1\WishlistController;
 use App\Http\Controllers\v1\auth\AuthController;
@@ -126,18 +124,4 @@ Route::prefix('v1')->group(function () {
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
 
-
-Route::get('/create-storage-link', function () {
-    $target = storage_path('app/public');
-    $link = public_path('storage');
-
-    if (File::exists($link)) {
-        return 'Storage link already exists.';
-    }
-
-    File::link($target, $link);
-
-    return 'Storage link created successfully.';
-});
-Route::get('/storage_link', function (){ Artisan::call('storage:link'); });
 });
