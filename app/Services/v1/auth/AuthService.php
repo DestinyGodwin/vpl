@@ -246,24 +246,36 @@ public function verifyOtp(User $user, string $otp)
         $user->currentAccessToken()->delete();
     }
  
-    public function updateProfile($request)
-    {
-        $user = Auth::user();
-        if ($request->hasFile('profile_picture')) {
-            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-                Storage::disk('public')->delete($user->profile_picture);
-            }
-            $user->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
+ public function updateProfile($request)
+{
+    $user = Auth::user();
+
+    if ($request->hasFile('profile_picture')) {
+        if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+            Storage::disk('public')->delete($user->profile_picture);
         }
-    
-        $user->fill($request->only([
-            'first_name', 'last_name', 'phone', 'email', 'university_id'
-        ]));
-    
-        $user->save();
-    
-        return $user->fresh();
+
+        $user->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
     }
+
+    // Check if university_id is changing
+    $newUniversityId = $request->input('university_id');
+    $oldUniversityId = $user->university_id;
+
+    $user->fill($request->only([
+        'first_name', 'last_name', 'phone', 'email', 'university_id'
+    ]));
+
+    $user->save();
+
+    // Update user's stores if university has changed
+    if ($newUniversityId && $newUniversityId !== $oldUniversityId) {
+        $user->stores()->update(['university_id' => $newUniversityId]);
+    }
+
+    return $user->fresh()->load('university');
+}
+
     public function getProfile()
 {
     return Auth::user()->load('university');
