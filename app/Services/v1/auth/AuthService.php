@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Services\v1\auth\RateLimitService;
@@ -280,6 +281,22 @@ public function verifyOtp(User $user, string $otp)
 {
     return Auth::user()->load('university');
 }
+public function changePassword($user, $currentPassword, $newPassword)
+    {
+        if (!Hash::check($currentPassword, $user->password)) {
+            return [
+                'success' => false,
+                'message' => 'Current password is incorrect.',
+            ];
+        }
 
+        $user->password = Hash::make($newPassword);
+        $user->save();
+
+        return [
+            'success' => true,
+            'message' => 'Password changed successfully.',
+        ];
+    }
 
 }
