@@ -276,7 +276,7 @@ public function verifyOtp(User $user, string $otp)
 
     return $user->fresh()->load('university');
 }
-
+//hello test
     public function getProfile()
 {
     return Auth::user()->load('university');
