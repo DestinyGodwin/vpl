@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use App\Services\v1\auth\AuthService;
 use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\auth\LoginRequest;
@@ -12,6 +13,7 @@ use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
 use App\Http\Requests\v1\auth\ResetPasswordRequest;
 use App\Http\Requests\v1\auth\UpdateProfileRequest;
+use App\Http\Requests\v1\auth\ChangePasswordRequest;
 use App\Http\Requests\v1\auth\ForgotPasswordRequest;
 use App\Notifications\v1\auth\EmailVerifiedSuccessNotification;
 use App\Notifications\v1\auth\PasswordChangedSuccessNotification;
@@ -95,4 +97,20 @@ class AuthController extends Controller
     $user = $this->authService->getProfile();
     return new UserResource($user);
 }
+ public function changePassword(ChangePasswordRequest $request)
+    {
+        $user = Auth::user();
+
+        $result = $this->authService->changePassword(
+            $user,
+            $request->input('current_password'),
+            $request->input('new_password')
+        );
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 422);
+        }
+
+        return response()->json(['message' => $result['message']], 200);
+    }
 }
