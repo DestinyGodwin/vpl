@@ -47,24 +47,17 @@ class AuthController extends Controller
 
      public function login(LoginRequest $request): JsonResponse
     {
-        // Request is already validated by LoginRequest
-        
-        // Pass only necessary data to service layer
         $credentials = $request->only('email', 'password');
         $ipAddress = $request->ip();
         
-        // Call service to handle business logic
         $result = $this->authService->login($credentials, $ipAddress);
         
-        // Return response
         return response()->json([
             'status' => 'success',
             'message' => 'User logged in successfully',
             'data' => $result
         ]);
     }
-
-
 
     public function logout(Request $request)
     {
