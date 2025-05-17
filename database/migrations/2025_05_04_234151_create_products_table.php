@@ -20,7 +20,8 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
-            
+            $table->index(['store_id', 'category_id']);
+
         });
     }
 

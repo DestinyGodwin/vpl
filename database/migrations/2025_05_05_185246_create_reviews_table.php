@@ -18,6 +18,9 @@ return new class extends Migration
             $table->tinyInteger('rating'); 
             $table->text('comment')->nullable();
             $table->timestamps();
+            $table->index('product_id');
+
+
         });
     }
 

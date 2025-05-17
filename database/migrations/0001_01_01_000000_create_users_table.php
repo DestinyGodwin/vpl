@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->string('email')->unique();
             $table->string('profile_picture')->nullable();
-            $table->foreignUuid('university_id');
+        $table->foreignUuid('university_id')->constrained()->onDelete('restrict');
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expires_at')->nullable();
             $table->timestamp('email_verified_at')->nullable();
