@@ -10,6 +10,7 @@ use App\Http\Controllers\v1\stores\StoreController;
 use App\Http\Controllers\v1\products\ReviewController;
 use App\Http\Controllers\v1\products\ProductController;
 use App\Http\Controllers\v1\products\ProductRequestController;
+use Illuminate\Support\Facades\File;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -123,4 +124,18 @@ Route::prefix('v1')->group(function () {
     
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
+
+
+Route::get('/create-storage-link', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+
+    if (File::exists($link)) {
+        return 'Storage link already exists.';
+    }
+
+    File::link($target, $link);
+
+    return 'Storage link created successfully.';
+});
 });
