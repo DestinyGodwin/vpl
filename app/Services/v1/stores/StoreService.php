@@ -102,10 +102,10 @@ class StoreService
             return null;
         }
     }
-    public function getUserStores($perPage = null)
+    public function getUserStores()
 {
     $query = Auth::user()->stores()->with('university');
-    return $query->paginate($perPage ?? 50);
+ return $query->get();
 }
 
 
