@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\v1\CategoryController;
 use App\Http\Controllers\v1\WishlistController;
 use App\Http\Controllers\v1\auth\AuthController;
@@ -10,7 +12,6 @@ use App\Http\Controllers\v1\stores\StoreController;
 use App\Http\Controllers\v1\products\ReviewController;
 use App\Http\Controllers\v1\products\ProductController;
 use App\Http\Controllers\v1\products\ProductRequestController;
-use Illuminate\Support\Facades\File;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -138,4 +139,5 @@ Route::get('/create-storage-link', function () {
 
     return 'Storage link created successfully.';
 });
+Route::get('/storage_link', function (){ Artisan::call('storage:link'); });
 });
