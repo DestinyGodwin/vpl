@@ -9,6 +9,7 @@ use App\Http\Controllers\v1\UniversityController;
 use App\Http\Controllers\v1\stores\StoreController;
 use App\Http\Controllers\v1\products\ReviewController;
 use App\Http\Controllers\v1\products\ProductController;
+use App\Http\Controllers\v1\products\NotificationController;
 use App\Http\Controllers\v1\products\ProductRequestController;
 
 Route::get('/user', function (Request $request) {
@@ -110,6 +111,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
 
     });
+    Route::prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+});
 
     // Reviews (public GET routes)
     Route::prefix('reviews')->group(function () {
