@@ -1,8 +1,10 @@
 <?php
 namespace App\Services\v1\products;
+use Storage;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+
 class ProductService
 {
     public function create($request): Product
@@ -27,27 +29,30 @@ class ProductService
         return Product::with('category', 'images', 'store.user', 'reviews')->latest()->paginate($perPage);
     }
 
-    public function update($id, $request)
-    {
-        $product = Auth::user()->stores()->with('products')->get()
-            ->pluck('products')->flatten()->firstWhere('id', $id);
-
-        if (!$product) abort(404, 'Product not found or not owned.');
-
-        $product->update($request->only(['name', 'description', 'price', 'category_id']));
-
-        if ($request->filled('image_ids_to_delete')) {
-            $product->images()->whereIn('id', $request->image_ids_to_delete)->delete();
+   public function update($id, $request)
+{
+    $product = Auth::user()->stores()->with('products')->get()
+        ->pluck('products')->flatten()->firstWhere('id', $id);
+    if (!$product) abort(404, 'Product not found or not owned.');
+    $product->update($request->only(['name', 'description', 'price', 'category_id']));
+    if ($request->filled('image_ids_to_delete')) {
+        $imagesToDelete = $product->images()->whereIn('id', $request->image_ids_to_delete)->get();
+        foreach ($imagesToDelete as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
         }
-
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
-            }
-        }
-
-        return $product->fresh(['category', 'images', 'store.user', 'reviews']);
     }
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $imageFile) {
+            $product->images()->create([
+                'image_path' => $imageFile->store('products', 'public'),
+            ]);
+        }
+    }
+
+    return $product->fresh(['category', 'images', 'store.user', 'reviews']);
+}
+
 
     public function delete($id)
     {

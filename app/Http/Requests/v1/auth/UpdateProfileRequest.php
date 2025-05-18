@@ -31,5 +31,5 @@ class UpdateProfileRequest extends FormRequest
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', 
         ];
     }
-    
+ 
 }
