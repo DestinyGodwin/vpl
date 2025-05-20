@@ -14,8 +14,7 @@ class ProductRequestController extends Controller
 
     public function store(StoreProductRequestRequest $request)
     {
-        $productRequest = $this->service->store($request);
-        return response()->json(['data' => $productRequest], 201);
+       return new ProductRequestResource($this->service->store($request));
     }
     public function index()
     {
