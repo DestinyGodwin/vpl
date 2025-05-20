@@ -22,111 +22,109 @@ class AuthService
      * Create a new class instance.
      */
 
- public function __construct(private RateLimitService $rateLimiter) {}
+    public function __construct(private RateLimitService $rateLimiter) {}
 
-    public function register(array $data) : string
+    public function register(array $data): string
     {
         if (isset($data['profile_picture'])) {
             $path = $data['profile_picture']->store('profile_pictures', 'public');
             $data['profile_picture'] = $path;
         }
-       
+
         $user = User::create($data);
 
         try {
             $this->sendOtp($user);
-           Log::info('OTP email sent successfully: ' );
+            Log::info('OTP email sent successfully: ');
         } catch (\Throwable $e) {
             Log::error('OTP email failed: ' . $e->getMessage());
         }
 
         return $user->email;
     }
-public function sendOtp(User $user, string $type = 'email_verification')
-{
-    $key = "otp:{$type}:" . $user->id;
-    $maxAttempts = 3;
-    $decaySeconds = 600;
+    public function sendOtp(User $user, string $type = 'email_verification')
+    {
+        $key = "otp:{$type}:" . $user->id;
+        $maxAttempts = 3;
+        $decaySeconds = 600;
 
-    $check = $this->rateLimiter->check($key, $maxAttempts);
-    if ($check) {
-        return response()->json([
-            'message' => $check['message'],
-            'retry_after_seconds' => RateLimiter::availableIn($key),
-            'remaining_attempts' => 0,
-        ], $check['status']);
-    }
-
-    $this->rateLimiter->increment($key, $decaySeconds);
-
-    $otp = rand(100000, 999999); // 6-digit numeric OTP
-    $user->update([
-        'otp_code' => Hash::make($otp), // hash the OTP
-        'otp_expires_at' => now()->addMinutes(10)
-    ]);
-
-    try {
-        if ($type === 'email_verification') {
-            $user->notify(new EmailOtpNotification($otp));
-        } elseif ($type === 'password_reset') {
-            $user->notify(new PasswordResetOtpNotification($otp));
+        $check = $this->rateLimiter->check($key, $maxAttempts);
+        if ($check) {
+            return response()->json([
+                'message' => $check['message'],
+                'retry_after_seconds' => RateLimiter::availableIn($key),
+                'remaining_attempts' => 0,
+            ], $check['status']);
         }
-        Log::info("OTP sent for {$type} to {$user->email}");
-    } catch (\Throwable $e) {
-        Log::error("Failed to send {$type} OTP: " . $e->getMessage());
-    }
 
-    return response()->json(['message' => 'OTP sent successfully.']);
-}
-  public function verifyOtp(User $user, string $otp): bool
-{
-    $key = 'otp_verify:' . $user->id;
-    $maxAttempts = 5;
-    $decaySeconds = 600;
-
-    $check = $this->rateLimiter->check($key, $maxAttempts);
-    if ($check) {
-        return false;
-    }
-
-    $isExpired = $user->otp_expires_at < now();
-    $isInvalid = !$user->otp_code || !Hash::check($otp, $user->otp_code);
-
-    if ($isExpired || $isInvalid) {
         $this->rateLimiter->increment($key, $decaySeconds);
-        return false;
+
+        $otp = rand(100000, 999999); // 6-digit numeric OTP
+        $user->update([
+            'otp_code' => Hash::make($otp), // hash the OTP
+            'otp_expires_at' => now()->addMinutes(10)
+        ]);
+
+        try {
+            if ($type === 'email_verification') {
+                $user->notify(new EmailOtpNotification($otp));
+            } elseif ($type === 'password_reset') {
+                $user->notify(new PasswordResetOtpNotification($otp));
+            }
+            Log::info("OTP sent for {$type} to {$user->email}");
+        } catch (\Throwable $e) {
+            Log::error("Failed to send {$type} OTP: " . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'OTP sent successfully.']);
     }
+    public function verifyOtp(User $user, string $otp): bool
+    {
+        $key = 'otp_verify:' . $user->id;
+        $maxAttempts = 5;
+        $decaySeconds = 600;
 
-    $this->rateLimiter->reset($key);
+        $check = $this->rateLimiter->check($key, $maxAttempts);
+        if ($check) {
+            return false;
+        }
 
-    $user->update([
-        'email_verified_at' => now(),
-        'otp_code' => null,
-        'otp_expires_at' => null,
-    ]);
+        $isExpired = $user->otp_expires_at < now();
+        $isInvalid = !$user->otp_code || !Hash::check($otp, $user->otp_code);
 
-    return true;
-}
+        if ($isExpired || $isInvalid) {
+            $this->rateLimiter->increment($key, $decaySeconds);
+            return false;
+        }
+
+        $this->rateLimiter->reset($key);
+        $user->email_verified_at = now();
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->save();
+
+        return true;
+    }
 
     /**
      * Initial waiting time in minutes after exceeding max attempts
-     */const MAX_ATTEMPTS = 5;
-    
+     */ const MAX_ATTEMPTS = 5;
+
     /**
      * Initial timeout in minutes
      */
     const INITIAL_TIMEOUT = 1;
-    
+
     /**
      * Cache key prefix for attempts
      */
     const ATTEMPTS_KEY_PREFIX = 'login_attempts:';
-    
+
     /**
      * Cache key prefix for lockout time
      */
     const LOCKOUT_KEY_PREFIX = 'login_lockout:';
-    
+
     /**
      * Handle user login with exponential backoff rate limiting
      *
@@ -139,23 +137,23 @@ public function sendOtp(User $user, string $type = 'email_verification')
     {
         $email = $credentials['email'];
         $key = $this->getKey($email, $ipAddress);
-        
+
         $this->checkLockout($key);
         if (!Auth::attempt($credentials)) {
-                        $this->handleFailedAttempt($key);
+            $this->handleFailedAttempt($key);
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
         }
         $this->clearRateLimiting($key);
         $user = Auth::user();
-        
+
         // Revoke any existing tokens for this user
         $user->tokens()->delete();
-        
+
         // Create new token
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return [
             'user' => $user->email,
             'university' => $user->university->name,
@@ -163,7 +161,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
             'token_type' => 'Bearer',
         ];
     }
-    
+
     /**
      * Check if the user is currently locked out
      *
@@ -173,10 +171,10 @@ public function sendOtp(User $user, string $type = 'email_verification')
     private function checkLockout(string $key): void
     {
         $lockoutExpiration = Cache::get(self::LOCKOUT_KEY_PREFIX . $key);
-        
+
         if ($lockoutExpiration && now()->lt($lockoutExpiration)) {
             $seconds = Carbon::now()->diffInSeconds($lockoutExpiration);
-            
+
             throw ValidationException::withMessages([
                 'email' => trans('auth.throttle', [
                     'seconds' => $seconds,
@@ -185,7 +183,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
             ]);
         }
     }
-    
+
     /**
      * Handle a failed login attempt with exponential backoff
      *
@@ -198,7 +196,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
         $lockoutKey = self::LOCKOUT_KEY_PREFIX . $key;
         $attempts = Cache::get($attemptsKey, 0);
         $attempts++;
-        Cache::put($attemptsKey, $attempts, now()->addDay());        
+        Cache::put($attemptsKey, $attempts, now()->addDay());
         if ($attempts > self::MAX_ATTEMPTS) {
             $exceededCount = $attempts - self::MAX_ATTEMPTS;
             $timeoutMinutes = self::INITIAL_TIMEOUT * pow(2, $exceededCount - 1);
@@ -206,7 +204,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
             Cache::put($lockoutKey, $lockoutExpiration, $lockoutExpiration);
         }
     }
-    
+
     /**
      * Clear all rate limiting data on successful login
      *
@@ -218,7 +216,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
         Cache::forget(self::ATTEMPTS_KEY_PREFIX . $key);
         Cache::forget(self::LOCKOUT_KEY_PREFIX . $key);
     }
-    
+
     /**
      * Get the unique key for rate limiting
      *
@@ -235,42 +233,46 @@ public function sendOtp(User $user, string $type = 'email_verification')
     {
         $user->currentAccessToken()->delete();
     }
- 
- public function updateProfile($request)
-{
-    $user = Auth::user();
 
-    if ($request->hasFile('profile_picture')) {
-        if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-            Storage::disk('public')->delete($user->profile_picture);
+    public function updateProfile($request)
+    {
+        $user = Auth::user();
+
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $user->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
         }
 
-        $user->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
+        // Check if university_id is changing
+        $newUniversityId = $request->input('university_id');
+        $oldUniversityId = $user->university_id;
+
+        $user->fill($request->only([
+            'first_name',
+            'last_name',
+            'phone',
+            'email',
+            'university_id'
+        ]));
+
+        $user->save();
+
+        // Update user's stores if university has changed
+        if ($newUniversityId && $newUniversityId !== $oldUniversityId) {
+            $user->stores()->update(['university_id' => $newUniversityId]);
+        }
+
+        return $user->fresh()->load('university');
     }
-
-    // Check if university_id is changing
-    $newUniversityId = $request->input('university_id');
-    $oldUniversityId = $user->university_id;
-
-    $user->fill($request->only([
-        'first_name', 'last_name', 'phone', 'email', 'university_id'
-    ]));
-
-    $user->save();
-
-    // Update user's stores if university has changed
-    if ($newUniversityId && $newUniversityId !== $oldUniversityId) {
-        $user->stores()->update(['university_id' => $newUniversityId]);
-    }
-
-    return $user->fresh()->load('university');
-}
-//hello test
+    //hello test
     public function getProfile()
-{
-    return Auth::user()->load('university');
-}
-public function changePassword($user, $currentPassword, $newPassword)
+    {
+        return Auth::user()->load('university');
+    }
+    public function changePassword($user, $currentPassword, $newPassword)
     {
         if (!Hash::check($currentPassword, $user->password)) {
             return [
@@ -287,5 +289,4 @@ public function changePassword($user, $currentPassword, $newPassword)
             'message' => 'Password changed successfully.',
         ];
     }
-
 }

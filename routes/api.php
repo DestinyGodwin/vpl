@@ -28,7 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-    
+
 
     // University Resource
     Route::apiResource('universities', UniversityController::class);
@@ -38,14 +38,14 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'getProfile']);
-            Route::post('/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
 
         Route::post('profile/update', [AuthController::class, 'updateProfile']);
         Route::apiResource('universities', UniversityController::class)->only('store');
-         Route::get('wishlist', [WishlistController::class, 'index']);
-    Route::post('wishlist', [WishlistController::class, 'store']);
-    Route::delete('wishlist/{productId}', [WishlistController::class, 'destroy']);
-    Route::get('wishlist/{productId}', [WishlistController::class, 'show']);
+        Route::get('wishlist', [WishlistController::class, 'index']);
+        Route::post('wishlist', [WishlistController::class, 'store']);
+        Route::delete('wishlist/{productId}', [WishlistController::class, 'destroy']);
+        Route::get('wishlist/{productId}', [WishlistController::class, 'show']);
 
         // Store (write operations)
         Route::prefix('stores')->group(function () {
@@ -53,8 +53,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [StoreController::class, 'update']);
             Route::delete('/{id}', [StoreController::class, 'destroy']);
             Route::get('/user/my', [StoreController::class, 'myStores']);
-            
-
         });
         Route::prefix('product-requests')->group(function () {
             Route::get('/', [ProductRequestController::class, 'index']);
@@ -63,7 +61,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [ProductRequestController::class, 'update']);
             Route::delete('/{id}', [ProductRequestController::class, 'destroy']);
         });
-        
+
 
         // Product (write operations)
         Route::prefix('products')->group(function () {
@@ -72,8 +70,6 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [ProductController::class, 'destroy']);
             Route::get('/user', [ProductController::class, 'getByUser']);
             Route::get('/user/{type}', [ProductController::class, 'getByUser']);
-
-
         });
 
         // Reviews (write operations)
@@ -81,45 +77,43 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ReviewController::class, 'store']);
             Route::delete('/{id}', [ReviewController::class, 'destroy']);
         });
-            Route::prefix('notifications')->group(function () {
-    Route::get('/', [NotificationController::class, 'index']);
-    Route::get('/unread', [NotificationController::class, 'unread']);
-    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread', [NotificationController::class, 'unread']);
+            Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::delete('/{id}', [NotificationController::class, 'destroy']);
+            Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+        });
+
+        // Store (public GET routes)
+        Route::prefix('stores')->group(function () {
+            Route::get('/', [StoreController::class, 'index']);
+            Route::get('/{id}', [StoreController::class, 'show']);
+
+            Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
+            Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
+            Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
+        });
+
+        // Product (public GET routes)
+        Route::prefix('products')->group(function () {
+            Route::get('/', [ProductController::class, 'index']);
+            Route::get('/search', [ProductController::class, 'search']);
+
+            Route::get('/{id}', [ProductController::class, 'show']);
+            Route::get('/store/{storeId}', [ProductController::class, 'getByStore']);
+            Route::get('/store/{storeId}/{type}', [ProductController::class, 'getByStore']);
+            Route::get('/university/{universityId}', [ProductController::class, 'getByUniversity']);
+            Route::get('/university/{universityId}/{type}', [ProductController::class, 'getByUniversity']);
+            Route::get('/country/{country}', [ProductController::class, 'getByCountry']);
+            Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
+            Route::get('/country/{country}/{type}', [ProductController::class, 'byCountryWithType']);
+            Route::get('/state/{state}', [ProductController::class, 'getByState']);
+            Route::get('/state/{state}/{type}', [ProductController::class, 'byStateWithType']);
+            Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
+        });
     });
-
-    // Store (public GET routes)
-    Route::prefix('stores')->group(function () {
-        Route::get('/', [StoreController::class, 'index']);
-        Route::get('/{id}', [StoreController::class, 'show']);
-    
-        Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
-        Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
-        Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
-    });
-
-    // Product (public GET routes)
-    Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
-        Route::get('/search', [ProductController::class, 'search']);
-
-        Route::get('/{id}', [ProductController::class, 'show']); 
-        Route::get('/store/{storeId}', [ProductController::class, 'getByStore']);
-        Route::get('/store/{storeId}/{type}', [ProductController::class, 'getByStore']); 
-        Route::get('/university/{universityId}', [ProductController::class, 'getByUniversity']);
-        Route::get('/university/{universityId}/{type}', [ProductController::class, 'getByUniversity']);
-        Route::get('/country/{country}', [ProductController::class, 'getByCountry']);
-        Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
-        Route::get('/country/{country}/{type}', [ProductController::class, 'byCountryWithType']);
-        Route::get('/state/{state}', [ProductController::class, 'getByState']);
-        Route::get('/state/{state}/{type}', [ProductController::class, 'byStateWithType']);
-        Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
-
-    });
-
-});
 
     // Reviews (public GET routes)
     Route::prefix('reviews')->group(function () {
@@ -130,8 +124,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/', [CategoryController::class, 'store']);
         Route::get('/{id}', [CategoryController::class, 'show']);
         Route::delete('/{id}', [CategoryController::class, 'destroy']);
-    
+
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
-
 });
