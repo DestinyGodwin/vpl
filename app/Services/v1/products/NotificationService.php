@@ -41,4 +41,9 @@ class NotificationService
     {
         Auth::user()->notifications()->delete();
     }
+    public function getOne(string $notificationId)
+{
+    return Auth::user()->notifications()->findOrFail($notificationId);
+}
+
 }
