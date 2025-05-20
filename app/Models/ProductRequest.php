@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ProductRequest extends Model
 {
     use HasUuids, HasFactory;
-    protected $fillable = [ 'category_id', 'name', 'description'];
+    protected $fillable = [ 'user_id' ,'category_id', 'name', 'description'];
 
     public function user()
     {
