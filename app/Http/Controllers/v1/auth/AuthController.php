@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\v1\auth\AuthService;
 use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\auth\LoginRequest;
+use App\Http\Requests\v1\auth\SendOtpRequest;
 use App\Http\Requests\v1\auth\VerifyOtpRequest;
 use App\Http\Requests\v1\auth\RegisterUserRequest;
 use App\Http\Requests\v1\auth\ResetPasswordRequest;
@@ -41,7 +42,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid or expired OTP.'], 422);
     }
 
-    public function resendOtp(VerifyOtpRequest $request)
+    public function resendOtp(SendOtpRequest $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
         $this->authService->sendOtp($user, 'email_verification');
