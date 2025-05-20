@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stores', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
-            $table->foreignUuid('university_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('university_id')->constrained()->onDelete('restrict');
             $table->enum('type', ['regular', 'food']);
             $table->string('name');
             $table->string('image')->nullable();
