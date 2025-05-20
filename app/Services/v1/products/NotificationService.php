@@ -5,16 +5,15 @@ namespace App\Services\v1\products;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationService
+{public function getAll()
 {
-    public function getAll($perPage = 20)
-    {
-        return Auth::user()->notifications()->latest()->paginate($perPage);
-    }
+    return Auth::user()->notifications()->latest()->get();
+}
 
-    public function getUnread($perPage = 20)
-    {
-        return Auth::user()->unreadNotifications()->latest()->paginate($perPage);
-    }
+public function getUnread()
+{
+    return Auth::user()->unreadNotifications()->latest()->get();
+}
 
     public function markAsRead(string $notificationId): bool
     {

@@ -72,16 +72,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ReviewController::class, 'store']);
             Route::delete('/{id}', [ReviewController::class, 'destroy']);
         });
-        Route::prefix('notifications')->group(function () {
-            Route::get('/', [NotificationController::class, 'index']);
-            
-            Route::get('/unread', [NotificationController::class, 'unread']);
-            Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-            Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-            Route::delete('/{id}', [NotificationController::class, 'destroy']);
-            Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
-        });
-
+      Route::prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::get('/{id}', [NotificationController::class, 'show']); 
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+});
     });
 
     Route::prefix('products')->group(function () {
@@ -112,12 +111,12 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
-      Route::prefix('stores')->group(function () {
-            Route::get('/', [StoreController::class, 'index']);
-            Route::get('/{id}', [StoreController::class, 'show']);
+    Route::prefix('stores')->group(function () {
+        Route::get('/', [StoreController::class, 'index']);
+        Route::get('/{id}', [StoreController::class, 'show']);
 
-            Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
-            Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
-            Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
-        });
+        Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
+        Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
+        Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
+    });
 });
