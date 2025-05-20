@@ -81,6 +81,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ReviewController::class, 'store']);
             Route::delete('/{id}', [ReviewController::class, 'destroy']);
         });
+            Route::prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
     });
 
     // Store (public GET routes)
@@ -111,13 +118,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
 
     });
-    Route::prefix('notifications')->group(function () {
-    Route::get('/', [NotificationController::class, 'index']);
-    Route::get('/unread', [NotificationController::class, 'unread']);
-    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+
 });
 
     // Reviews (public GET routes)
