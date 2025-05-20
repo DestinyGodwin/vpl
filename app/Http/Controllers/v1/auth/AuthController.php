@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Services\v1\auth\AuthService;
 use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\auth\LoginRequest;
@@ -74,19 +75,23 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP sent to email.']);
     }
 
-    public function resetPassword(ResetPasswordRequest $request)
-    {
-        $user = User::where('email', $request->email)->firstOrFail();
+  
+public function resetPassword(ResetPasswordRequest $request)
+{
+    $user = User::where('email', $request->email)->firstOrFail();
 
-        if (!$this->authService->verifyOtp($user, $request->otp)) {
-            return response()->json(['message' => 'Invalid OTP'], 422);
-        }
-
-        $user->update(['password' => bcrypt($request->password)]);
-        $user->notify(new PasswordChangedSuccessNotification());
-
-        return response()->json(['message' => 'Password reset successful.']);
+    if (!$this->authService->verifyOtp($user, $request->otp)) {
+        return response()->json(['message' => 'Invalid OTP'], 422);
     }
+    $user->update([
+        'password' => Hash::make($request->password),
+    ]);
+
+    $user->notify(new PasswordChangedSuccessNotification());
+
+    return response()->json(['message' => 'Password reset successful.']);
+}
+
     public function updateProfile(UpdateProfileRequest $request){
         $this->authService->updateProfile($request);
         return response()->json(['profile updated successfully']);
