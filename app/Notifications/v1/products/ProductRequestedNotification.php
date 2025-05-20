@@ -39,7 +39,7 @@ class ProductRequestedNotification extends Notification implements ShouldQueue
   
         return [
             'title' => 'New Product Request',
-            'message' => "A user has requested a product that matches your store type: {$this->productRequest->name}",
+            'message' => "A user has requested a product that you may have, {$this->productRequest->name}",
             'product_request_id' => $this->productRequest->id,
         ];
     }
