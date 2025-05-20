@@ -26,7 +26,8 @@ class ProductRequestedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('New Product Request')
             ->greeting("Hello {$notifiable->first_name},")
-            ->line("A user has requested a product that matches your store type.")
+            ->line("A user has requested a product on Vplaza.")
+            ->line("Log in to your account and navigate to 'Alert' to view the notification")
             ->line("Product: {$this->productRequest->name}")
             ->line("Description: {$this->productRequest->description}")
             ->action('View Requests', url('/product-requests'))
@@ -35,6 +36,7 @@ class ProductRequestedNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
+  
         return [
             'title' => 'New Product Request',
             'message' => "A user has requested a product that matches your store type: {$this->productRequest->name}",
