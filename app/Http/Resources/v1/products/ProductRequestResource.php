@@ -26,6 +26,7 @@ class ProductRequestResource extends JsonResource
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->first_name . ' ' . $this->user->last_name,
+                'phone' => $this->user->phone,
             ],
             'images' => $this->images->map(fn($image) => [
                 'id' => $image->id,
