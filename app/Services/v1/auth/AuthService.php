@@ -59,9 +59,9 @@ public function sendOtp(User $user, string $type = 'email_verification')
 
     $this->rateLimiter->increment($key, $decaySeconds);
 
-    $otp = rand(100000, 999999);
+    $otp = rand(100000, 999999); // 6-digit numeric OTP
     $user->update([
-        'otp_code' => $otp,
+        'otp_code' => Hash::make($otp), // hash the OTP
         'otp_expires_at' => now()->addMinutes(10)
     ]);
 
@@ -78,47 +78,7 @@ public function sendOtp(User $user, string $type = 'email_verification')
 
     return response()->json(['message' => 'OTP sent successfully.']);
 }
-// public function verifyOtp(User $user, string $otp)
-// {
-//     $key = 'otp_verify:' . $user->id;
-//     $maxAttempts = 5;
-//     $decaySeconds = 600;
-
-//     $check = $this->rateLimiter->check($key, $maxAttempts);
-//     if ($check) {
-//         return response()->json([
-//             'message' => $check['message'],
-//             'retry_after_seconds' => RateLimiter::availableIn($key),
-//             'remaining_attempts' => 0,
-//         ], $check['status']);
-//     }
-
-//     if (
-//         $user->otp_code !== $otp ||
-//         $user->otp_expires_at < now()
-//     ) {
-//         $this->rateLimiter->increment($key, $decaySeconds);
-//         $attempts = RateLimiter::attempts($key);
-//         $remainingAttempts = max($maxAttempts - $attempts, 0);
-//         return response()->json([
-//             'message' => 'Invalid or expired OTP.',
-//             'remaining_attempts' => $remainingAttempts,
-//             'retry_after_seconds' => RateLimiter::availableIn($key),
-//         ], 401);
-//     }
-
-//     $this->rateLimiter->reset($key);
-
-//     $user->update([
-//         'email_verified_at' => now(),
-//         'otp_code' => null,
-//         'otp_expires_at' => null,
-//     ]);
-
-//     return response()->json(['message' => 'OTP verified successfully.']);
-// }
- 
-    public function verifyOtp(User $user, string $otp): bool
+  public function verifyOtp(User $user, string $otp): bool
 {
     $key = 'otp_verify:' . $user->id;
     $maxAttempts = 5;
@@ -129,10 +89,10 @@ public function sendOtp(User $user, string $type = 'email_verification')
         return false;
     }
 
-    if (
-        $user->otp_code !== $otp ||
-        $user->otp_expires_at < now()
-    ) {
+    $isExpired = $user->otp_expires_at < now();
+    $isInvalid = !$user->otp_code || !Hash::check($otp, $user->otp_code);
+
+    if ($isExpired || $isInvalid) {
         $this->rateLimiter->increment($key, $decaySeconds);
         return false;
     }
