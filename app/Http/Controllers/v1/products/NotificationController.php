@@ -17,7 +17,12 @@ class NotificationController extends Controller
             'notifications' => $this->notificationService->getAll()
         ]);
     }
+public function show(string $id)
+{
+    $notification = $this->notificationService->getOne($id);
 
+    return response()->json(['notification' => $notification]);
+}
     public function unread(Request $request)
     {
         return response()->json([
