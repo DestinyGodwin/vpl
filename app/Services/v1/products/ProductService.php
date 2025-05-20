@@ -26,7 +26,7 @@ class ProductService
 
     public function getAll($perPage = 50)
     {
-        return Product::with('category', 'images', 'store.user', 'reviews')->latest()->paginate($perPage);
+        return Product::with('category', 'images', 'store.user', 'reviews')->inrandomorder()->paginate($perPage);
     }
 
    public function update($id, $request)
@@ -73,7 +73,7 @@ class ProductService
         return Product::whereHas('store', function ($q) use ($type) {
             $q->where('user_id', Auth::id());
             if ($type) $q->where('type', $type);
-        })->with('category', 'images', 'store.user', 'reviews')->latest()->paginate($perPage);
+        })->with('category', 'images', 'store.user', 'reviews')->inrandomorder()->paginate($perPage);
     }
 
     public function getByStore($storeId, $type = null, $perPage = 50)
@@ -81,7 +81,7 @@ class ProductService
         return Product::whereHas('store', function ($q) use ($storeId, $type) {
             $q->where('id', $storeId);
             if ($type) $q->where('type', $type);
-        })->with('category', 'images', 'store.user', 'reviews')->latest()->paginate($perPage);
+        })->with('category', 'images', 'store.user', 'reviews')->inrandomorder()->paginate($perPage);
     }
 
     public function getByUniversity($universityId, $type = null, $perPage = 50)
@@ -89,7 +89,7 @@ class ProductService
         return Product::whereHas('store', function ($q) use ($universityId, $type) {
             $q->where('university_id', $universityId);
             if ($type) $q->where('type', $type);
-        })->with('category', 'images', 'store.user', 'reviews')->latest()->paginate($perPage);
+        })->with('category', 'images', 'store.user', 'reviews')->inrandomorder()->paginate($perPage);
     }
 
     public function getByCountry(string $country, string $type = null, $perPage = 50)
@@ -98,7 +98,7 @@ class ProductService
             $query->whereRaw('LOWER(country) = ?', [strtolower($country)]);
         })->when($type, fn($q) => $q->whereHas('store', fn($sq) => $sq->where('type', $type)))
             ->with('category', 'images', 'store.user', 'reviews')
-            ->latest()->paginate($perPage);
+            ->inrandomorder()->paginate($perPage);
     }
 
     public function getByState(string $state, string $type = null, $perPage = 50)
@@ -107,21 +107,21 @@ class ProductService
             $query->whereRaw('LOWER(state) = ?', [strtolower($state)]);
         })->when($type, fn($q) => $q->whereHas('store', fn($sq) => $sq->where('type', $type)))
             ->with('category', 'images', 'store.user', 'reviews')
-            ->latest()->paginate($perPage);
+            ->inrandomorder()->paginate($perPage);
     }
 
     public function getByCategory($categoryId, $perPage = 50)
     {
         return Product::where('category_id', $categoryId)
             ->with('category', 'images', 'store.user', 'reviews')
-            ->latest()->paginate($perPage);
+            ->inrandomorder()->paginate($perPage);
     }
 
     public function getByStoreType(string $type, $perPage = 50)
     {
         return Product::whereHas('store', fn($q) => $q->where('type', $type))
             ->with('category', 'images', 'store.user', 'reviews')
-            ->latest()->paginate($perPage);
+            ->inRandomOrder()->paginate($perPage);
     }
 
     public function search(array $filters, int $perPage = 50)
@@ -159,7 +159,7 @@ class ProductService
                 $q->where('name', 'like', '%' . $keyword . '%')
             )
             ->with('category', 'images', 'store.user', 'reviews')
-            ->latest()
+            ->inRandomOrder()
             ->paginate($perPage);
     }
 }
