@@ -28,13 +28,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-
-
-    // University Resource
     Route::apiResource('universities', UniversityController::class);
 
-
-    // Authenticated routes
     Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'getProfile']);
@@ -86,18 +81,6 @@ Route::prefix('v1')->group(function () {
             Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
         });
 
-        // Store (public GET routes)
-        Route::prefix('stores')->group(function () {
-            Route::get('/', [StoreController::class, 'index']);
-            Route::get('/{id}', [StoreController::class, 'show']);
-
-            Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
-            Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
-            Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
-        });
-
-        // Product (public GET routes)
-
     });
 
     Route::prefix('products')->group(function () {
@@ -128,4 +111,12 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
+      Route::prefix('stores')->group(function () {
+            Route::get('/', [StoreController::class, 'index']);
+            Route::get('/{id}', [StoreController::class, 'show']);
+
+            Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
+            Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
+            Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
+        });
 });
