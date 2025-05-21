@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Middleware\IsAdmin;
 use Illuminate\Foundation\Application;
+use App\Http\Middleware\AlreadyLoggedIn;
 use App\Http\Middleware\EmailIsVerified;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\AlreadyLoggedIn;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'verified.otp' => EmailIsVerified::class,
                 'logged.in' => AlreadyLoggedIn::class,
+                    'admin' => IsAdmin::class,
+
 
         ]);
     })
