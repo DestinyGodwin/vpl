@@ -123,4 +123,32 @@ class ProductController extends Controller
             $this->productService->search($filters, $request->getPerPage())
         );
     }
+    public function getUserProductsByCategory(PaginationRequest $request, $categoryId)
+{
+    return ProductResource::collection(
+        $this->productService->getUserProductsByCategory($categoryId, $request->getPerPage())
+    );
+}
+
+public function getUniversityProductsByCategory(PaginationRequest $request, $universityId, $categoryId)
+{
+    return ProductResource::collection(
+        $this->productService->getUniversityProductsByCategory($universityId, $categoryId, $request->getPerPage())
+    );
+}
+
+public function getStoreProductsByCategory(PaginationRequest $request, $storeId, $categoryId)
+{
+    return ProductResource::collection(
+        $this->productService->getStoreProductsByCategory($storeId, $categoryId, $request->getPerPage())
+    );
+}
+
+public function getStateProductsByCategory(PaginationRequest $request, $state, $categoryId)
+{
+    return ProductResource::collection(
+        $this->productService->getStateProductsByCategory($state, $categoryId, $request->getPerPage())
+    );
+}
+
 }
