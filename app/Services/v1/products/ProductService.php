@@ -162,4 +162,42 @@ class ProductService
             ->inRandomOrder()
             ->paginate($perPage);
     }
+    public function getUserProductsByCategory($categoryId, $perPage = 50)
+{
+    return Product::where('category_id', $categoryId)
+        ->whereHas('store', fn($q) => $q->where('user_id', Auth::id()))
+        ->with('category', 'images', 'store.user', 'reviews')
+        ->inRandomOrder()
+        ->paginate($perPage);
+}
+
+public function getUniversityProductsByCategory($universityId, $categoryId, $perPage = 50)
+{
+    return Product::where('category_id', $categoryId)
+        ->whereHas('store', fn($q) => $q->where('university_id', $universityId))
+        ->with('category', 'images', 'store.user', 'reviews')
+        ->inRandomOrder()
+        ->paginate($perPage);
+}
+
+public function getStoreProductsByCategory($storeId, $categoryId, $perPage = 50)
+{
+    return Product::where('category_id', $categoryId)
+        ->where('store_id', $storeId)
+        ->with('category', 'images', 'store.user', 'reviews')
+        ->inRandomOrder()
+        ->paginate($perPage);
+}
+
+public function getStateProductsByCategory(string $state, $categoryId, $perPage = 50)
+{
+    return Product::where('category_id', $categoryId)
+        ->whereHas('store.university', fn($q) =>
+            $q->whereRaw('LOWER(state) = ?', [strtolower($state)])
+        )
+        ->with('category', 'images', 'store.user', 'reviews')
+        ->inRandomOrder()
+        ->paginate($perPage);
+}
+
 }
