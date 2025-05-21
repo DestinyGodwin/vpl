@@ -27,7 +27,6 @@ class CategoryController extends Controller
         return response()->json($category);
     }
 
-    // POST /api/categories
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -72,4 +71,25 @@ class CategoryController extends Controller
             'categories' => $categories,
         ]);
     }
+    public function update(Request $request, $id)
+{
+    $category = Category::find($id);
+
+    if (!$category) {
+        return response()->json(['message' => 'Category not found.'], 404);
+    }
+
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'store_type' => ['required', 'in:regular,food'],
+    ]);
+
+    $category->update($validated);
+
+    return response()->json([
+        'message' => 'Category updated successfully.',
+        'category' => $category,
+    ]);
+}
+
 }

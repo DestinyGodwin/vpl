@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AdminService;
 use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\PaginationRequest;
+use App\Http\Requests\v1\admin\GetUserByIdRequest;
 use App\Http\Requests\v1\admin\NotifyUsersRequest;
+use App\Http\Requests\v1\admin\GetUserByEmailRequest;
 use App\Http\Requests\v1\admin\AdminNotificationRequest;
 
 class AdminController extends Controller
@@ -28,6 +30,16 @@ class AdminController extends Controller
     public function usersByUniversity(PaginationRequest $request, string $universityId)
     {
         return UserResource::collection($this->adminService->getUsersByUniversity($universityId, $request->getPerPage()));
+    }
+     public function getById(GetUserByIdRequest $request)
+    {
+        return UserResource::collection($this->adminService->getUserById($request->input('id')));
+    }
+
+    public function getByEmail(GetUserByEmailRequest $request)
+    {
+         return UserResource::collection($this->adminService->getUserByEmail($request->input('email')));
+
     }
 
     public function usersByState(PaginationRequest $request, string $state)
