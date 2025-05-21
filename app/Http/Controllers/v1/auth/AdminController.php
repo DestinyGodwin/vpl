@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AdminService;
 use App\Http\Requests\v1\PaginationRequest;
+use App\Http\Requests\v1\admin\AdminNotificationRequest;
 
 class AdminController extends Controller
 {
@@ -14,8 +15,7 @@ class AdminController extends Controller
 
     public function __construct(AdminService $adminService)
     {
-        $this->middleware('auth:sanctum');
-        $this->middleware('admin');
+      
         $this->adminService = $adminService;
     }
 
@@ -52,4 +52,5 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Notifications sent successfully']);
     }
+    
 }

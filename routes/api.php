@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\v1\CategoryController;
 use App\Http\Controllers\v1\WishlistController;
 use App\Http\Controllers\v1\auth\AuthController;
+use App\Http\Controllers\v1\auth\AdminController;
 use App\Http\Controllers\v1\UniversityController;
 use App\Http\Controllers\v1\stores\StoreController;
 use App\Http\Controllers\v1\products\ReviewController;
@@ -30,7 +31,7 @@ Route::prefix('v1')->group(function () {
 
     Route::apiResource('universities', UniversityController::class);
 
-    Route::middleware('auth:sanctum', 'verified.otp')->group(function () {
+    Route::middleware(['auth:sanctum', 'verified.otp'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'getProfile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
@@ -123,4 +124,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
         Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
     });
+    Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/users', [AdminController::class, 'allUsers']);
+    Route::get('/users/university/{id}', [AdminController::class, 'usersByUniversity']);
+    Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
+    Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
+    Route::post('/notify', [AdminController::class, 'notifyUsers']);
+});
 });
