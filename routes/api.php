@@ -129,7 +129,7 @@ Route::prefix('admin') ->middleware(['auth:sanctum', 'admin'])->group(function (
         Route::get('/users/university/{universityId}', [AdminController::class, 'usersByUniversity']);
         Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
         Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
-        Route::post('/notify/users', [AdminController::class, 'notifyUsers']); // by user_ids
+        Route::post('/notify/users', [AdminController::class, 'notifyUsers']); 
         Route::post('/notify/university/{universityId}', [AdminController::class, 'notifyUniversity']);
         Route::post('/notify/state/{state}', [AdminController::class, 'notifyState']);
         Route::post('/notify/country/{country}', [AdminController::class, 'notifyCountry']);

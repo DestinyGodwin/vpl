@@ -116,7 +116,6 @@ public function resetPassword(ResetPasswordRequest $request)
         if (!$result['success']) {
             return response()->json(['message' => $result['message']], 422);
         }
-
         return response()->json(['message' => $result['message']], 200);
     }
 }

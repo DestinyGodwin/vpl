@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\v1\auth;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AdminService;
+use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\PaginationRequest;
+use App\Http\Requests\v1\admin\NotifyUsersRequest;
 use App\Http\Requests\v1\admin\AdminNotificationRequest;
 
 class AdminController extends Controller
@@ -19,24 +20,24 @@ class AdminController extends Controller
         $this->adminService = $adminService;
     }
 
-    public function allUsers(PaginationRequest $request): JsonResponse
+    public function allUsers(PaginationRequest $request)
     {
-        return response()->json($this->adminService->getAllUsers($request->getPerPage()));
+        return UserResource::collection($this->adminService->getAllUsers($request->getPerPage()));
     }
 
-    public function usersByUniversity(PaginationRequest $request, string $universityId): JsonResponse
+    public function usersByUniversity(PaginationRequest $request, string $universityId)
     {
-        return response()->json($this->adminService->getUsersByUniversity($universityId, $request->getPerPage()));
+        return UserResource::collection($this->adminService->getUsersByUniversity($universityId, $request->getPerPage()));
     }
 
-    public function usersByState(PaginationRequest $request, string $state): JsonResponse
+    public function usersByState(PaginationRequest $request, string $state)
     {
-        return response()->json($this->adminService->getUsersByState($state, $request->getPerPage()));
+        return UserResource::collection($this->adminService->getUsersByState($state, $request->getPerPage()));
     }
 
-    public function usersByCountry(PaginationRequest $request, string $country): JsonResponse
+    public function usersByCountry(PaginationRequest $request, string $country)
     {
-        return response()->json($this->adminService->getUsersByCountry($country, $request->getPerPage()));
+        return UserResource::collection($this->adminService->getUsersByCountry($country, $request->getPerPage()));
     }
 
     public function notifyUsers(NotifyUsersRequest $request): JsonResponse

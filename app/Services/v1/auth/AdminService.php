@@ -12,6 +12,15 @@ class AdminService
     {
         return User::with('university')->paginate($perPage);
     }
+     public function getUserById(int $id): User
+    {
+        return User::findOrFail($id);
+    }
+
+    public function getUserByEmail(string $email): User
+    {
+        return User::where('email', $email)->firstOrFail();
+    }
 
     public function getUsersByUniversity($universityId, $perPage = 50)
     {

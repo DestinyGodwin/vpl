@@ -4,7 +4,7 @@ namespace App\Http\Requests\v1\admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class NotifyUsersnRequest extends FormRequest
+class GetUserByIdRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,7 @@ class NotifyUsersnRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_ids' => ['required', 'array'],
-            'user_ids.*' => ['uuid', 'exists:users,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'message' => ['required', 'string'],
+               'id' => ['required', 'integer', 'exists:users,id'],
         ];
     }
 }
