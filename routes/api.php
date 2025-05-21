@@ -124,11 +124,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
         Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
     });
-    Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::get('/users', [AdminController::class, 'allUsers']);
-    Route::get('/users/university/{id}', [AdminController::class, 'usersByUniversity']);
-    Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
-    Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
-    Route::post('/notify', [AdminController::class, 'notifyUsers']);
-});
+Route::prefix('admin') ->middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::get('/users', [AdminController::class, 'allUsers']);
+        Route::get('/users/university/{universityId}', [AdminController::class, 'usersByUniversity']);
+        Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
+        Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
+        Route::post('/notify/users', [AdminController::class, 'notifyUsers']); // by user_ids
+        Route::post('/notify/university/{universityId}', [AdminController::class, 'notifyUniversity']);
+        Route::post('/notify/state/{state}', [AdminController::class, 'notifyState']);
+        Route::post('/notify/country/{country}', [AdminController::class, 'notifyCountry']);
+    });
 });

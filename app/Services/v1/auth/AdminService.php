@@ -3,6 +3,7 @@
 namespace App\Services\v1\auth;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
 use App\Notifications\v1\GenericNotification;
 
 class AdminService
@@ -46,4 +47,26 @@ class AdminService
             $user->notify(new GenericNotification($title, $message));
         }
     }
+    public function notifyUsersByUniversity(string $universityId, string $title, string $message): void
+{
+    $users = User::where('university_id', $universityId)->get();
+    Notification::send($users, new GeneralNotification($title, $message));
+}
+
+public function notifyUsersByState(string $state, string $title, string $message): void
+{
+    $users = User::whereHas('university', function ($query) use ($state) {
+        $query->whereRaw('LOWER(state) = ?', [strtolower($state)]);
+    })->get();
+    Notification::send($users, new GeneralNotification($title, $message));
+}
+
+public function notifyUsersByCountry(string $country, string $title, string $message): void
+{
+    $users = User::whereHas('university', function ($query) use ($country) {
+        $query->whereRaw('LOWER(country) = ?', [strtolower($country)]);
+    })->get();
+    Notification::send($users, new GeneralNotification($title, $message));
+}
+
 }
