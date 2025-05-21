@@ -3,6 +3,7 @@
 namespace App\Services\v1\auth;
 
 use App\Models\User;
+use App\Notifications\v1\GenericNotification;
 
 class AdminService
 {
