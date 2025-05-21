@@ -52,5 +52,36 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Notifications sent successfully']);
     }
-    
+    public function notifyUniversity(AdminNotificationRequest $request, $universityId)
+{
+    $this->adminService->notifyUsersByUniversity(
+        $universityId,
+        $request->title,
+        $request->message
+    );
+
+    return response()->json(['message' => 'Notification sent to university users successfully']);
+}
+
+public function notifyState(AdminNotificationRequest $request, $state)
+{
+    $this->adminService->notifyUsersByState(
+        $state,
+        $request->title,
+        $request->message
+    );
+
+    return response()->json(['message' => 'Notification sent to state users successfully']);
+}
+
+public function notifyCountry(AdminNotificationRequest $request, $country)
+{
+    $this->adminService->notifyUsersByCountry(
+        $country,
+        $request->title,
+        $request->message
+    );
+
+    return response()->json(['message' => 'Notification sent to country users successfully']);
+}
 }
