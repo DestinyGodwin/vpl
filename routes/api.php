@@ -72,15 +72,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ReviewController::class, 'store']);
             Route::delete('/{id}', [ReviewController::class, 'destroy']);
         });
-      Route::prefix('notifications')->group(function () {
-    Route::get('/', [NotificationController::class, 'index']);
-    Route::get('/unread', [NotificationController::class, 'unread']);
-    Route::get('/{id}', [NotificationController::class, 'show']); 
-    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
-});
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread', [NotificationController::class, 'unread']);
+            Route::get('/{id}', [NotificationController::class, 'show']);
+            Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::delete('/{id}', [NotificationController::class, 'destroy']);
+            Route::delete('/delete-all', [NotificationController::class, 'destroyAll']);
+        });
     });
 
     Route::prefix('products')->group(function () {
@@ -98,6 +98,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/state/{state}', [ProductController::class, 'getByState']);
         Route::get('/state/{state}/{type}', [ProductController::class, 'byStateWithType']);
         Route::get('/type/{type}', [ProductController::class, 'byStoreType']);
+        Route::get('/user/category/{categoryId}', [ProductController::class, 'getUserProductsByCategory']);
+        Route::get('/university/{universityId}/category/{categoryId}', [ProductController::class, 'getUniversityProductsByCategory']);
+        Route::get('/store/{storeId}/category/{categoryId}', [ProductController::class, 'getStoreProductsByCategory']);
+        Route::get('/state/{state}/category/{categoryId}', [ProductController::class, 'getStateProductsByCategory']);
     });
     // Reviews (public GET routes)
     Route::prefix('reviews')->group(function () {
