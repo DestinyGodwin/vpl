@@ -56,6 +56,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [StoreController::class, 'update']);
             Route::delete('/{id}', [StoreController::class, 'destroy']);
             Route::get('/user/my', [StoreController::class, 'myStores']);
+            Route::patch('{id}/toggle-status', [StoreController::class, 'toggleStatus']);
         });
 
         Route::prefix('product-requests')->group(function () {
