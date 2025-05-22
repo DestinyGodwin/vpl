@@ -147,6 +147,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
         Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
         Route::post('/notify/users', [AdminController::class, 'notifyUsers']);
+        Route::post('admin/notify/users/by-email', [AdminController::class, 'notifyUsersByEmail']);
         Route::post('/notify/university/{universityId}', [AdminController::class, 'notifyUniversity']);
         Route::post('/notify/state/{state}', [AdminController::class, 'notifyState']);
         Route::post('/notify/country/{country}', [AdminController::class, 'notifyCountry']);
