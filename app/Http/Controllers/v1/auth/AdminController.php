@@ -12,6 +12,7 @@ use App\Http\Requests\v1\admin\GetUserByIdRequest;
 use App\Http\Requests\v1\admin\NotifyUsersRequest;
 use App\Http\Requests\v1\admin\GetUserByEmailRequest;
 use App\Http\Requests\v1\admin\AdminNotificationRequest;
+use App\Http\Requests\v1\admin\NotifyUsersByEmailRequest;
 
 class AdminController extends Controller
 {
@@ -80,4 +81,12 @@ return new UserResource($this->adminService->getUserById($request->input('id')))
 
         return response()->json(['message' => 'Notification sent to country users successfully']);
     }
+    public function notifyUsersByEmail(NotifyUsersByEmailRequest $request): JsonResponse
+{
+    $users = User::whereIn('email', $request->emails)->get();
+
+    $this->adminService->notifyUsersByEmail($users, $request->title, $request->message);
+
+    return response()->json(['message' => 'Notifications sent successfully']);
+}
 }
