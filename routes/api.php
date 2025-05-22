@@ -25,7 +25,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
-    Route::post('/login', [AuthController::class, 'login'])->middleware('logged.in');
+    Route::post('/login', [AuthController::class, 'login'])->middleware(['logged.in', 'verified.otp']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
