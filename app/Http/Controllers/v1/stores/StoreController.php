@@ -46,7 +46,19 @@ class StoreController extends Controller
         return response()->json(['message' => 'Store deleted successfully.']);
     }
 
+public function toggleStatus($id)
+{
+    $store = $this->storeService->toggleStatusByOwner($id);
 
+    if (!$store) {
+        return response()->json(['message' => 'Store not found or you are not authorized to change its status.'], 404);
+    }
+
+    return response()->json([
+        'message' => 'Store status updated successfully.',
+        'data' => new StoreResource($store),
+    ]);
+}
 
     public function show($id)
     {
