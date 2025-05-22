@@ -101,6 +101,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/store/{storeId}/{type}', [ProductController::class, 'getByStore']);
         Route::get('/university/{universityId}', [ProductController::class, 'getByUniversity']);
         Route::get('/university/{universityId}/{type}', [ProductController::class, 'getByUniversity']);
+        Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
         Route::get('/country/{country}', [ProductController::class, 'getByCountry']);
         Route::get('/country/{country}/{type}', [ProductController::class, 'byCountryWithType']);
         Route::get('/state/{state}', [ProductController::class, 'getByState']);
