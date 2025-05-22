@@ -23,7 +23,7 @@ class NotifyUsersRequest extends FormRequest
     {
         return [
             'user_ids' => ['required', 'array'],
-            'user_ids.*' => ['uuid', 'exists:users,id'],
+            'user_ids.*' => ['string', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string'],
         ];

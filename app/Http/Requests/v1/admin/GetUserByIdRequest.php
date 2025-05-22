@@ -21,8 +21,9 @@ class GetUserByIdRequest extends FormRequest
      */
     public function rules(): array
     {
+       
         return [
-               'id' => ['required', 'integer', 'exists:users,id'],
+               'id' => ['required', 'string', 'exists:users,id'],
         ];
     }
 }

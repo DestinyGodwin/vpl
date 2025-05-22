@@ -16,8 +16,8 @@ use App\Http\Controllers\v1\products\ProductRequestController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-Route::get('/', [ProductController::class, 'index']);
 
+Route::get('/', [ProductController::class, 'index']);
 
 Route::prefix('v1')->group(function () {
 
@@ -29,15 +29,22 @@ Route::prefix('v1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-    Route::apiResource('universities', UniversityController::class);
+    // Public university routes
+    Route::apiResource('universities', UniversityController::class)->only(['index', 'show']);
+
+    // Public category routes
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index']);
+        Route::get('/{id}', [CategoryController::class, 'show']);
+        Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
+    });
 
     Route::middleware(['auth:sanctum', 'verified.otp'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'getProfile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
-
         Route::post('profile/update', [AuthController::class, 'updateProfile']);
-        Route::apiResource('universities', UniversityController::class)->only('store');
+
         Route::get('wishlist', [WishlistController::class, 'index']);
         Route::post('wishlist', [WishlistController::class, 'store']);
         Route::delete('wishlist/{productId}', [WishlistController::class, 'destroy']);
@@ -50,6 +57,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [StoreController::class, 'destroy']);
             Route::get('/user/my', [StoreController::class, 'myStores']);
         });
+
         Route::prefix('product-requests')->group(function () {
             Route::get('/', [ProductRequestController::class, 'index']);
             Route::get('/{id}', [ProductRequestController::class, 'show']);
@@ -57,7 +65,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [ProductRequestController::class, 'update']);
             Route::delete('/{id}', [ProductRequestController::class, 'destroy']);
         });
-
 
         // Product (write operations)
         Route::prefix('products')->group(function () {
@@ -73,6 +80,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ReviewController::class, 'store']);
             Route::delete('/{id}', [ReviewController::class, 'destroy']);
         });
+
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::get('/unread', [NotificationController::class, 'unread']);
@@ -84,17 +92,16 @@ Route::prefix('v1')->group(function () {
         });
     });
 
+    // Product read-only routes
     Route::prefix('products')->group(function () {
         Route::get('/', [ProductController::class, 'index']);
         Route::get('/search', [ProductController::class, 'search']);
-
         Route::get('/{id}', [ProductController::class, 'show']);
         Route::get('/store/{storeId}', [ProductController::class, 'getByStore']);
         Route::get('/store/{storeId}/{type}', [ProductController::class, 'getByStore']);
         Route::get('/university/{universityId}', [ProductController::class, 'getByUniversity']);
         Route::get('/university/{universityId}/{type}', [ProductController::class, 'getByUniversity']);
         Route::get('/country/{country}', [ProductController::class, 'getByCountry']);
-        Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
         Route::get('/country/{country}/{type}', [ProductController::class, 'byCountryWithType']);
         Route::get('/state/{state}', [ProductController::class, 'getByState']);
         Route::get('/state/{state}/{type}', [ProductController::class, 'byStateWithType']);
@@ -104,25 +111,34 @@ Route::prefix('v1')->group(function () {
         Route::get('/store/{storeId}/category/{categoryId}', [ProductController::class, 'getStoreProductsByCategory']);
         Route::get('/state/{state}/category/{categoryId}', [ProductController::class, 'getStateProductsByCategory']);
     });
+
+    // Reviews read-only
     Route::prefix('reviews')->group(function () {
         Route::get('/product/{productId}', [ReviewController::class, 'byProduct']);
     });
-    Route::prefix('categories')->group(function () {
-        Route::get('/', [CategoryController::class, 'index']);
-        Route::post('/', [CategoryController::class, 'store']);
-        Route::get('/{id}', [CategoryController::class, 'show']);
-        Route::delete('/{id}', [CategoryController::class, 'destroy']);
 
-        Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
+    // Category write operations (admin only)
+    Route::prefix('categories')->middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::post('/', [CategoryController::class, 'store']);
+        Route::put('/{id}', [CategoryController::class, 'update']);
+        Route::delete('/{id}', [CategoryController::class, 'destroy']);
     });
+
+    // University write operations (admin only)
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::apiResource('universities', UniversityController::class)->only(['store', 'update', 'destroy']);
+    });
+
+    // Store read-only
     Route::prefix('stores')->group(function () {
         Route::get('/', [StoreController::class, 'index']);
         Route::get('/{id}', [StoreController::class, 'show']);
-
-        Route::get('/type/{type}', [StoreController::class, 'byType']); // handles regular/food
+        Route::get('/type/{type}', [StoreController::class, 'byType']);
         Route::get('/university/{universityId}/{type?}', [StoreController::class, 'byUniversity']);
         Route::get('/country/{countryId}/{type?}', [StoreController::class, 'byCountry']);
     });
+
+    // Admin routes
     Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/users', [AdminController::class, 'allUsers']);
         Route::get('/user/by-id', [AdminController::class, 'getById']);
@@ -134,6 +150,5 @@ Route::prefix('v1')->group(function () {
         Route::post('/notify/university/{universityId}', [AdminController::class, 'notifyUniversity']);
         Route::post('/notify/state/{state}', [AdminController::class, 'notifyState']);
         Route::post('/notify/country/{country}', [AdminController::class, 'notifyCountry']);
-        
     });
 });

@@ -12,7 +12,7 @@ class AdminService
     {
         return User::with('university')->paginate($perPage);
     }
-     public function getUserById(int $id): User
+     public function getUserById(string $id): User
     {
         return User::findOrFail($id);
     }

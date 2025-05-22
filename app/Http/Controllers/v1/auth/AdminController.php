@@ -32,13 +32,13 @@ class AdminController extends Controller
         return UserResource::collection($this->adminService->getUsersByUniversity($universityId, $request->getPerPage()));
     }
      public function getById(GetUserByIdRequest $request)
-    {
-        return UserResource::collection($this->adminService->getUserById($request->input('id')));
+{
+return new UserResource($this->adminService->getUserById($request->input('id')));
     }
 
     public function getByEmail(GetUserByEmailRequest $request)
     {
-         return UserResource::collection($this->adminService->getUserByEmail($request->input('email')));
+         return new UserResource($this->adminService->getUserByEmail($request->input('email')));
 
     }
 

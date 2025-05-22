@@ -30,7 +30,7 @@ class ProductRequestedNotification extends Notification implements ShouldQueue
             ->line("Log in to your account and navigate to 'Alert' to view the notification")
             ->line("Product: {$this->productRequest->name}")
             ->line("Description: {$this->productRequest->description}")
-            ->action('View Requests', url('/product-requests'))
+         ->action('View Request', config('app.url') . '/product-requests/' . $this->productRequest->id)
             ->line('Thanks for using our platform!');
     }
 
