@@ -60,13 +60,10 @@ class StoreService
                 $store->image = $request->file('image')->store('stores', 'public');
             }
 
-            // Only update fields that are present in request
             $fieldsToUpdate = collect(['name', 'description', 'type', 'status'])
                 ->filter(fn($field) => $request->filled($field))
                 ->all();
-
             $store->update($request->only($fieldsToUpdate));
-
             return $store->fresh();
         } catch (ModelNotFoundException) {
             return null;
@@ -89,6 +86,21 @@ class StoreService
             return false;
         }
     }
+public function toggleStatusByOwner($id)
+{
+    $user = Auth::user();
+
+    try {
+        $store = $user->stores()->findOrFail($id);
+
+        $store->status = $store->status === 'is_active' ? 'is_inactive' : 'is_active';
+        $store->save();
+
+        return $store->fresh();
+    } catch (ModelNotFoundException) {
+        return null;
+    }
+}
 
     public function findById($id)
     {
