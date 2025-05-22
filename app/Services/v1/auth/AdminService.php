@@ -67,4 +67,8 @@ class AdminService
         )->get();
         $this->notifyUsers($users, $title, $message);
     }
+    public function notifyUsersByEmail($users, string $title, string $message): void
+{
+    Notification::send($users, new GenericNotification($title, $message));
+}
 }
