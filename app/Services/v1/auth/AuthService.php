@@ -261,9 +261,15 @@ class AuthService
         $user->save();
 
         // Update user's stores if university has changed
+        // if ($newUniversityId && $newUniversityId !== $oldUniversityId) {
+        //     $user->stores()->update(['university_id' => $newUniversityId]);
+        // }
         if ($newUniversityId && $newUniversityId !== $oldUniversityId) {
-            $user->stores()->update(['university_id' => $newUniversityId]);
-        }
+    foreach ($user->stores as $store) {
+        $store->university_id = $newUniversityId;
+        $store->save();
+    }
+}
 
         return $user->fresh()->load('university');
     }
