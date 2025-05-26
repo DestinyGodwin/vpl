@@ -39,7 +39,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/store-type/{store_type}', [CategoryController::class, 'getByStoreType']);
     });
 
-    Route::middleware(['auth:sanctum', 'verified.otp'])->group(function () {
+    // Route::middleware(['auth:sanctum', 'verified.otp'])->group(function () {
+            Route::middleware(['auth:sanctum'])->group(function () {
+
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'getProfile']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
