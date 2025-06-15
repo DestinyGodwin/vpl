@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Services\v1\auth\AdminService;
 use App\Http\Resources\v1\UserResource;
 use App\Http\Requests\v1\PaginationRequest;
+use App\Http\Requests\v1\admin\DeleteUsersRequest;
 use App\Http\Requests\v1\admin\GetUserByIdRequest;
 use App\Http\Requests\v1\admin\NotifyUsersRequest;
 use App\Http\Requests\v1\admin\GetUserByEmailRequest;
@@ -89,4 +90,11 @@ return new UserResource($this->adminService->getUserById($request->input('id')))
 
     return response()->json(['message' => 'Notifications sent successfully']);
 }
+public function deleteMultiple(DeleteUsersRequest $request): JsonResponse
+    {
+        $deletedCount = $this->userService->deleteUsers($request->input('user_ids'));
+
+        return response()->json([
+            'message' => "{$deletedCount} user(s) deleted successfully.",
+        ]);
 }
