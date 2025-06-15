@@ -4,6 +4,7 @@ namespace App\Services\v1\auth;
 
 use Exception;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\v1\GenericNotification;
@@ -115,5 +116,11 @@ class AdminService
                 'user_ids' => collect($users)->pluck('id')->toArray()
             ]);
         }
+    }
+    public function deleteUsers(array $userIds): int
+    {
+        return DB::transaction(function () use ($userIds) {
+            return User::whereIn('id', $userIds)->delete();
+        });
     }
 }
