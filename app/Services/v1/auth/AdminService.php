@@ -47,41 +47,6 @@ class AdminService
         )->with('university')->paginate($perPage);
     }
 
-    // public function notifyUsers($users, $title, $message): void
-    // {
-    //     Notification::send($users, new GenericNotification($title, $message));
-    // }
-
-    // public function notifyUsersByUniversity(string $universityId, string $title, string $message): void
-    // {
-    //     $users = User::where('university_id', $universityId)->get();
-    //     $this->notifyUsers($users, $title, $message);
-    // }
-
-    // public function notifyUsersByState(string $state, string $title, string $message): void
-    // {
-    //     $users = User::whereHas(
-    //         'university',
-    //         fn($query) =>
-    //         $query->whereRaw('LOWER(state) = ?', [strtolower($state)])
-    //     )->get();
-    //     $this->notifyUsers($users, $title, $message);
-    // }
-
-    // public function notifyUsersByCountry(string $country, string $title, string $message): void
-    // {
-    //     $users = User::whereHas(
-    //         'university',
-    //         fn($query) =>
-    //         $query->whereRaw('LOWER(country) = ?', [strtolower($country)])
-    //     )->get();
-    //     $this->notifyUsers($users, $title, $message);
-    // }
-    // public function notifyUsersByEmail($users, string $title, string $message): void
-    // {
-    //     Notification::send($users, new GenericNotification($title, $message));
-    // }
-
     public function notifyUsers($users, $title, $message): void
     {
         try {
