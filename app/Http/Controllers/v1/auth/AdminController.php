@@ -33,15 +33,14 @@ class AdminController extends Controller
     {
         return UserResource::collection($this->adminService->getUsersByUniversity($universityId, $request->getPerPage()));
     }
-     public function getById(GetUserByIdRequest $request)
-{
-return new UserResource($this->adminService->getUserById($request->input('id')));
+    public function getById(GetUserByIdRequest $request)
+    {
+        return new UserResource($this->adminService->getUserById($request->input('id')));
     }
 
     public function getByEmail(GetUserByEmailRequest $request)
     {
-         return new UserResource($this->adminService->getUserByEmail($request->input('email')));
-
+        return new UserResource($this->adminService->getUserByEmail($request->input('email')));
     }
 
     public function usersByState(PaginationRequest $request, string $state)
@@ -83,18 +82,18 @@ return new UserResource($this->adminService->getUserById($request->input('id')))
         return response()->json(['message' => 'Notification sent to country users successfully']);
     }
     public function notifyUsersByEmail(NotifyUsersByEmailRequest $request): JsonResponse
-{
-    $users = User::whereIn('email', $request->emails)->get();
-
-    $this->adminService->notifyUsersByEmail($users, $request->title, $request->message);
-
-    return response()->json(['message' => 'Notifications sent successfully']);
-}
-public function deleteMultiple(DeleteUsersRequest $request): JsonResponse
     {
-        $deletedCount = $this->userService->deleteUsers($request->input('user_ids'));
+        $users = User::whereIn('email', $request->emails)->get();
 
+        $this->adminService->notifyUsersByEmail($users, $request->title, $request->message);
+
+        return response()->json(['message' => 'Notifications sent successfully']);
+    }
+    public function deleteUsers(DeleteUsersRequest $request): JsonResponse
+    {
+        $deletedCount = $this->adminService->deleteUsers($request->input('user_ids'));
         return response()->json([
             'message' => "{$deletedCount} user(s) deleted successfully.",
         ]);
+    }
 }
