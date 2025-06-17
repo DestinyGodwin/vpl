@@ -146,9 +146,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/users', [AdminController::class, 'allUsers']);
         Route::get('/user/by-id', [AdminController::class, 'getById']);
-        Route::delete('/users/delete-', [AdminController::class, 'deleteUsers']);
+        Route::delete('/users/delete', [AdminController::class, 'deleteUsers']);
 
-        Route::get('/user/by-email', [AdminController::class, 'getByEmail']);
+        Route::get('/user/by-email',  [AdminController::class, 'getByEmail']);
         Route::get('/users/university/{universityId}', [AdminController::class, 'usersByUniversity']);
         Route::get('/users/state/{state}', [AdminController::class, 'usersByState']);
         Route::get('/users/country/{country}', [AdminController::class, 'usersByCountry']);
