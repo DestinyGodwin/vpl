@@ -26,7 +26,7 @@ class UpdateProductRequestRequest extends FormRequest
             'description' => 'sometimes|string',
             'category_id' => 'sometimes|exists:categories,id',
             'images' => 'sometimes|array|min:1',
-            'images.*' => 'required_with:images|image|mimes:jpeg,jpg,png,gif,webp,avif|max:2048',
+            'images.*' => 'required_with:images|image|mimes:jpeg,jpg,png,gif,webp,avif,heic|max:2048',
         ];
         
     }
