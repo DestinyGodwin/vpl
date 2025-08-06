@@ -16,6 +16,7 @@ class Store extends Model {
         'user_id',
         'university_id',
         'name',
+        'slug',
         'image',
         'type',
         'description',
