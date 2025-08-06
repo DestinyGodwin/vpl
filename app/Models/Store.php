@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Store extends Model
-{
-    use HasUuids, HasFactory, SoftDeletes;
-
+class Store extends Model {
+    use HasUuids, HasFactory, SoftDeletes, HasSlug;
 
     protected $fillable = [
-       'user_id',
+        'user_id',
         'university_id',
         'name',
         'image',
@@ -28,17 +28,24 @@ class Store extends Model
         'is_active' => 'boolean',
         'next_payment_due' => 'datetime',
     ];
-    public function products()
-    {
-        return $this->hasMany(Product::class);
+
+    public function products() {
+        return $this->hasMany( Product::class );
     }
+
     public function user() {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo( User::class );
     }
-    
+
     public function university() {
-        return $this->belongsTo(University::class);
+        return $this->belongsTo( University::class );
     }
-    
-  
+
+    public function getSlugOptions(): SlugOptions {
+        return SlugOptions::create()
+        ->generateSlugsFrom( 'name' )
+        ->saveSlugsTo( 'slug' )
+        ->doNotGenerateSlugsOnUpdate();
+    }
+
 }
