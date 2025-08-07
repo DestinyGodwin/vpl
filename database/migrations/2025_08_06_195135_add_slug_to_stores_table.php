@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('stores', function (Blueprint $table) {
-            //
+           $table->string('slug')->unique()->nullable()->after('name');
         });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-        Schema::table('stores', function (Blueprint $table) {
-           $table->string('slug')->unique()->nullable()->after('name');
-        });
+    // public function down(): void
+    // {
+    //     Schema::table('stores', function (Blueprint $table) {
+    //     });
     
-    }
+    // }
 };
