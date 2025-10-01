@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\v1\CategoryController;
+use App\Http\Controllers\v1\WhatsappController;
 use App\Http\Controllers\v1\WishlistController;
 use App\Http\Controllers\v1\auth\AuthController;
 use App\Http\Controllers\v1\auth\AdminController;
@@ -158,4 +159,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/notify/state/{state}', [AdminController::class, 'notifyState']);
         Route::post('/notify/country/{country}', [AdminController::class, 'notifyCountry']);
     });
+
+
+    Route::get('/whatsapp/webhook', [WhatsappController::class, 'webhookVerify']);
+    Route::post('/whatsapp/webhook', [WhatsappController::class, 'webhook']);
+    Route::post('/whatsapp/send', [WhatsappController::class, 'send']);
 });
