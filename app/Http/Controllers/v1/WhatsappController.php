@@ -10,6 +10,7 @@ class WhatsappController extends Controller
 {
       public function webhookVerify(Request $request)
     {
+            logger()->info('Webhook Verify Request', $request->all());
         if ($request->get('hub_verify_token') === config('whatsapp.verify_token')) {
             return response($request->get('hub_challenge'));
         }
@@ -18,21 +19,28 @@ class WhatsappController extends Controller
 
     public function webhook(Request $request)
     {
+            logger()->info('Webhook Incoming', $request->all());
         $data = $request->all();
         // Handle incoming messages here
         logger('Incoming WhatsApp', $data);
         return response()->json(['status' => 'received']);
     }
 
-    public function send(Request $request, WhatsappService $whatsapp)
-    {
-        $request->validate([
-            'to' => 'required|string',
-            'message' => 'required|string',
-        ]);
+   public function send(Request $request, WhatsAppService $whatsapp)
+{
+    $request->validate([
+        'to' => 'required|string',
+        'message' => 'required|string',
+        'image_url' => 'nullable|url',
+    ]);
 
-        $result = $whatsapp->sendMessage($request->to, $request->message);
+    $result = $whatsapp->sendMessage(
+        $request->to,
+        $request->message,
+        $request->image_url
+    );
 
-        return response()->json($result);
-    }
+    return response()->json($result);
+}
+
 }

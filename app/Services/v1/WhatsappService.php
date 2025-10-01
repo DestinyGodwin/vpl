@@ -19,21 +19,30 @@ class WhatsAppService
         $this->phoneNumberId = config('whatsapp.phone_number_id');
         $this->accessToken = config('whatsapp.access_token');
     }
+public function sendMessage(string $to, string $message, ?string $imageUrl = null): array
+{
+    $url = "{$this->apiUrl}{$this->phoneNumberId}/messages";
 
-    public function sendMessage(string $to, string $message): array
-    {
-        $url = "{$this->apiUrl}{$this->phoneNumberId}/messages";
+    $payload = [
+        'messaging_product' => 'whatsapp',
+        'to' => ltrim($to, '+'), // normalize number
+    ];
 
-        $payload = [
-            'messaging_product' => 'whatsapp',
-            'to' => $to,
-            'type' => 'text',
-            'text' => ['body' => $message],
+    if ($imageUrl) {
+        $payload['type'] = 'image';
+        $payload['image'] = [
+            'link' => $imageUrl,
+            'caption' => $message,
         ];
-
-        $response = Http::withToken($this->accessToken)
-            ->post($url, $payload);
-
-        return $response->json();
+    } else {
+        $payload['type'] = 'text';
+        $payload['text'] = ['body' => $message];
     }
+
+    $response = Http::withToken($this->accessToken)
+        ->post($url, $payload);
+
+    return $response->json();
+}
+
 }
